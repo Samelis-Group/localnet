@@ -140,15 +140,43 @@ export async function downloadFile(file: LibraryFile) {
   if (file.remote) {
     const url = remoteBlobUrl(file.id)
     if (!url) { toast.error('Serveur LAN non configuré'); return false }
-    const a = document.createElement('a')
-    a.href = url
-    a.download = file.name
-    a.rel = 'noopener'
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    useAppStore.getState().log('download', `${file.name} téléchargé depuis le réseau`)
-    return true
+    try {
+      const res = await fetch(url)
+      if (!res.ok) throw new Error(`Téléchargement impossible (${res.status})`)
+      const blob = await res.blob()
+      const cloneId = `clone-${file.id}`
+      const { saveBlob } = await import('./db')
+      await saveBlob(cloneId, blob)
+      const now = Date.now()
+      const clone: LibraryFile = {
+        ...file,
+        id: cloneId,
+        remote: false,
+        ownerId: 'me',
+        ownerName: useAppStore.getState().settings.displayName || 'Mon appareil',
+        ownerPeerId: undefined,
+        createdAt: now,
+        receivedAt: now,
+        cloneExpiresAt: now + 24 * 60 * 60 * 1000,
+        downloads: 0,
+        starred: false,
+      }
+      useAppStore.setState((s) => ({
+        files: [clone, ...s.files.filter((f) => f.id !== cloneId)],
+        activities: [{ id: uid(), type: 'download' as const, label: `${file.name} copié sur cet appareil (expire dans 24h)`, createdAt: now, actorId: s.currentUserId }, ...s.activities].slice(0, 200),
+      }))
+      const obj = URL.createObjectURL(blob)
+      downloadUrl(obj, file.name)
+      setTimeout(() => URL.revokeObjectURL(obj), 60_000)
+      useAppStore.getState().log('download', `${file.name} téléchargé depuis le réseau`)
+      return true
+    } catch {
+      // fallback direct link
+      const a = document.createElement('a')
+      a.href = url; a.download = file.name; a.rel = 'noopener'
+      document.body.appendChild(a); a.click(); a.remove()
+      return true
+    }
   }
   const blob = await getFileBlob(file)
   if (!blob) return false

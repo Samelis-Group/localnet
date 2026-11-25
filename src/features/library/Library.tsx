@@ -28,8 +28,10 @@ export default function Library() {
   const [search, setSearch] = useState('')
   const [addOpen, setAddOpen] = useState(false)
   const [share, setShare] = useState<LibraryFile | null>(null)
+  const purgeExpiredClones = useAppStore((s) => s.purgeExpiredClones)
   useEffect(() => subscribeStatus(setLan), [])
   useEffect(() => { if (new URLSearchParams(location.search).get('add') === '1') setAddOpen(true) }, [])
+  useEffect(() => { void purgeExpiredClones(); const t = setInterval(() => { void purgeExpiredClones() }, 60_000); return () => clearInterval(t) }, [purgeExpiredClones])
   const deferred = useDebouncedValue(search, 120)
 
   const files = useMemo(() => {
@@ -123,6 +125,7 @@ export default function Library() {
                       <span className="strong small truncate">{file.name}</span>
                       <Badge variant="light" color={isPublic ? "teal" : "yellow"} leftSection={isPublic ? <Globe size={11} /> : <Lock size={11} />}>{isPublic ? "Public" : "Privé"}</Badge>
                       {file.remote ? <Badge variant="light" color="blue">Stocké</Badge> : <Badge variant="light" color="gray">Local</Badge>}
+                      {file.cloneExpiresAt && <Badge variant="light" color="orange">Expire dans 24h</Badge>}
                       {(file.ownerId === currentUserId || (file.ownerPeerId && file.ownerPeerId === myPeerId)) && <Badge variant="light" color="grape">Envoyé par toi</Badge>}
                     </div>
                     <div className="tiny muted" style={{ marginTop: 3 }}>

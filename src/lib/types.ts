@@ -61,6 +61,8 @@ export interface LibraryFile {
   visibility?: FileVisibility
   allowedPeerIds?: string[]
   allowedNames?: string[]
+  receivedAt?: number
+  cloneExpiresAt?: number
 }
 
 export type TransferStatus = 'queued' | 'active' | 'paused' | 'done' | 'error' | 'cancelled'

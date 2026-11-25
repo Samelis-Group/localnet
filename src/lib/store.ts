@@ -35,6 +35,7 @@ interface AppStore extends AppSnapshot {
   addAnnouncement: (title: string, body: string) => void
   log: (type: ActivityType, label: string, actorId?: string) => void
   clearHistory: () => void
+  purgeExpiredClones: () => Promise<void>
   resetDemo: () => Promise<void>
   exportData: () => void
   importData: (snapshot: AppSnapshot) => void
@@ -89,8 +90,28 @@ export const useAppStore = create<AppStore>()(
           const name = (loaded.settings.displayName || '').trim()
           const clean = !name || name === 'Alex Martin' || name === 'Utilisateur' ? generateDeviceName() : name
           const settings = { ...loaded.settings, advancedMode: loaded.settings.advancedMode ?? false, displayName: clean }
-          const users = loaded.users.map((u) => u.id === 'me' ? { ...u, name: clean, email: '' } : u)
-          set({ ...loaded, users, settings, ready: true })
+          const isDemo = loaded.files.some((f) => ['f-guide','f-charte','f-cours','f-logo','f-photo','f-video','f-audio','f-archive','f-code','f-biblio','f-plan','f-note'].includes(f.id))
+          let users = loaded.users.map((u) => u.id === 'me' ? { ...u, name: clean, email: '' } : u)
+          let files = loaded.files
+          let transfers = loaded.transfers
+          let messages = loaded.messages
+          let announcements = loaded.announcements
+          let activities = loaded.activities
+          let networks = loaded.networks
+          if (isDemo) {
+            users = users.filter((u) => u.id === 'me')
+            files = []; transfers = []; messages = []; announcements = []; activities = []; networks = []
+          }
+          // purge cloned/received files older than 24h
+          const expiry = Date.now() - 24 * 60 * 60 * 1000
+          const expired = files.filter((f) => f.cloneExpiresAt && f.cloneExpiresAt < Date.now())
+          for (const f of expired) { try { await deleteBlob(f.id) } catch {} }
+          if (expired.length) files = files.filter((f) => !(f.cloneExpiresAt && f.cloneExpiresAt < Date.now()))
+          // also purge stale received remote clones kept locally by receivedAt
+          const staleReceived = files.filter((f) => f.receivedAt && f.receivedAt < expiry && f.ownerId !== 'me')
+          for (const f of staleReceived) { try { await deleteBlob(f.id) } catch {} }
+          if (staleReceived.length) files = files.filter((f) => !(f.receivedAt && f.receivedAt < expiry && f.ownerId !== 'me'))
+          set({ ...loaded, users, files, transfers, messages, announcements, activities, networks, settings, ready: true })
         } else {
           const seed = createSeedSnapshot()
           const name = generateDeviceName()
@@ -251,6 +272,13 @@ export const useAppStore = create<AppStore>()(
       },
       log(type, label, actorId) { set((s) => ({ activities: [withActivity(s, type, label, actorId), ...s.activities].slice(0, 200) })) },
       clearHistory() { set({ transfers: [], activities: [] }) },
+      async purgeExpiredClones() {
+        const nowTs = Date.now()
+        const expired = get().files.filter((f) => f.cloneExpiresAt && f.cloneExpiresAt < nowTs)
+        if (!expired.length) return
+        for (const f of expired) { try { await deleteBlob(f.id) } catch {} }
+        set((s) => ({ files: s.files.filter((f) => !(f.cloneExpiresAt && f.cloneExpiresAt < nowTs)) }))
+      },
       async resetDemo() {
         const seed = createSeedSnapshot()
         await saveSnapshot(seed)
