@@ -7,3 +7,14 @@ dev-dist
 .env.*
 !.env.example
 *.tsbuildinfo
+
+# Runtime local / donnees partagees
+server/data/
+
+# Yarn local
+.yarn/
+.yarnrc.yml
+
+# Caches locaux
+.vite/
+coverage/
