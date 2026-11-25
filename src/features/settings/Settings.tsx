@@ -85,7 +85,7 @@ export default function SettingsPage() {
         <div className="card">
           <Text fw={700} mb="sm">Mon profil</Text>
           <div className="field"><label>Ton nom visible</label><input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: PC Salon, Nadia..." /></div>
-          <Button color="primary.8" onClick={() => { setSettings({ displayName: name.trim() }); updateProfile({ name: name.trim() || me?.name || 'Utilisateur' }); toast.success('Nom enregistré') }}>Enregistrer</Button>
+          <Button color="primary.8" onClick={() => { setSettings({ displayName: name.trim() }); updateProfile({ name: name.trim() || me?.name || 'Mon appareil' }); toast.success('Nom enregistré') }}>Enregistrer</Button>
           <div className="tiny muted" style={{ marginTop: 10 }}>Ce nom est affiché aux autres appareils connectés.</div>
         </div>
 

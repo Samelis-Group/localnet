@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { loadSnapshot, saveSnapshot, saveBlob, readBlob, deleteBlob } from './db'
 import { createSeedSnapshot } from './seed'
-import { categoryFromMime, DEFAULT_PERMISSIONS, uid } from './format'
+import { categoryFromMime, DEFAULT_PERMISSIONS, generateDeviceName, uid } from './format'
 import type { Activity, ActivityType, Announcement, AppSnapshot, ChatMessage, Group, LibraryFile, Network, Role, Settings, Transfer, User } from './types'
 
 interface AppStore extends AppSnapshot {
@@ -85,9 +85,17 @@ export const useAppStore = create<AppStore>()(
       async boot() {
         if (get().ready) return
         const loaded = await loadSnapshot()
-        if (loaded) set({ ...loaded, settings: { ...loaded.settings, advancedMode: loaded.settings.advancedMode ?? false, displayName: loaded.settings.displayName ?? '' }, ready: true })
-        else {
+        if (loaded) {
+          const name = (loaded.settings.displayName || '').trim()
+          const clean = !name || name === 'Alex Martin' || name === 'Utilisateur' ? generateDeviceName() : name
+          const settings = { ...loaded.settings, advancedMode: loaded.settings.advancedMode ?? false, displayName: clean }
+          const users = loaded.users.map((u) => u.id === 'me' ? { ...u, name: clean, email: '' } : u)
+          set({ ...loaded, users, settings, ready: true })
+        } else {
           const seed = createSeedSnapshot()
+          const name = generateDeviceName()
+          seed.settings.displayName = name
+          seed.users = seed.users.map((u) => u.id === 'me' ? { ...u, name, email: '' } : u)
           await saveSnapshot(seed)
           set({ ...seed, ready: true })
         }
@@ -222,7 +230,7 @@ export const useAppStore = create<AppStore>()(
       createLocalTransfer(file, direction) {
         const t: Transfer = {
           id: uid(), fileId: file.id, fileName: file.name, size: file.size, direction,
-          peerId: get().currentUserId, peerName: 'Cet appareil', status: 'active', offset: 0, speed: 0, startedAt: now(),
+          peerId: get().currentUserId, peerName: get().settings.displayName || 'Cet appareil', status: 'active', offset: 0, speed: 0, startedAt: now(),
         }
         set((s) => ({ transfers: [t, ...s.transfers] }))
       },

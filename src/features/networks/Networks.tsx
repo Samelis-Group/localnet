@@ -95,7 +95,7 @@ export default function Networks() {
         <div className="device-grid" style={{ marginTop: 10 }}>
           <div className="device-card">
             <div className="device-icon" style={{ color: 'var(--accent)' }}><Laptop size={18} /></div>
-            <div className="strong small">{settings.displayName || me?.name || 'Cet appareil'}</div>
+            <div className="strong small">{settings.displayName || me?.name || 'Mon appareil'}</div>
             <div className="tiny faint">Vous · maintenant</div>
           </div>
           {peers.map((p) => (

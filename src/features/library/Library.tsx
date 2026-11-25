@@ -53,7 +53,11 @@ export default function Library() {
     return files.filter((f) => `${f.name} ${f.ownerName || ''}`.toLocaleLowerCase('fr').includes(q))
   }, [files, deferred])
 
-  const ownerName = (f: LibraryFile) => f.ownerName || users.find((u) => u.id === f.ownerId)?.name || (f.remote ? 'Réseau' : 'Moi')
+  const myPeerId = sessionStorage.getItem('localnet:peer') || ''
+  const ownerName = (f: LibraryFile) => {
+    if (f.ownerId === currentUserId || (f.ownerPeerId && f.ownerPeerId === myPeerId)) return 'Toi'
+    return f.ownerName || users.find((u) => u.id === f.ownerId)?.name || 'Appareil du réseau'
+  }
   const canDelete = (f: LibraryFile) => settings.advancedMode || f.ownerId === currentUserId || !f.remote
 
   return (
@@ -119,7 +123,7 @@ export default function Library() {
                       <span className="strong small truncate">{file.name}</span>
                       <Badge variant="light" color={isPublic ? "teal" : "yellow"} leftSection={isPublic ? <Globe size={11} /> : <Lock size={11} />}>{isPublic ? "Public" : "Privé"}</Badge>
                       {file.remote ? <Badge variant="light" color="blue">Stocké</Badge> : <Badge variant="light" color="gray">Local</Badge>}
-                      {!isPublic && file.ownerId === currentUserId && <Badge variant="light" color="grape">À toi</Badge>}
+                      {(file.ownerId === currentUserId || (file.ownerPeerId && file.ownerPeerId === myPeerId)) && <Badge variant="light" color="grape">Envoyé par toi</Badge>}
                     </div>
                     <div className="tiny muted" style={{ marginTop: 3 }}>
                       {formatBytes(file.size)} · {ownerName(file)} · {relativeTime(file.createdAt)}

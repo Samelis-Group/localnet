@@ -138,9 +138,9 @@ export default function Admin() {
           <div className="small muted" style={{ marginBottom: 14 }}>Réinitialisez l’environnement de démonstration ou purgez l’historique sans supprimer les fichiers partagés.</div>
           <div className="row" style={{ gap: 8 }}>
             <Button variant="light" color="blue" onClick={() => { if (confirm('Réinitialiser toutes les données de démonstration ?')) { void resetDemo(); toast.success('Données réinitialisées') } }}>Réinitialiser la démo</Button>
-            <Button variant="light" color="red" onClick={() => { if (confirm('Effacer l’historique des transferts et activités ?')) { useAppStore.getState().clearHistory(); toast.success('Historique effacé') } }}><Trash2 size={14} /> Purger l’historique</Button>
+            <Button variant="light" color="red" onClick={() => { if (confirm('Effacer l’activité récente et l’historique des transferts ?')) { useAppStore.getState().clearHistory(); toast.success('Historique effacé') } }}><Trash2 size={14} /> Effacer l’historique</Button>
           </div>
-          <div className="row" style={{ gap: 8, marginTop: 14 }}><Avatar name="Alex Martin" color="#01a275" size="xs" /><span className="tiny faint">Dernière sauvegarde automatique : session courante</span></div>
+          <div className="row" style={{ gap: 8, marginTop: 14 }}><Avatar name="Alex Martin" color="#01a275" size="xs" /><span className="tiny faint">Sauvegarde locale active</span></div>
         </div>
       </div>
     </div>

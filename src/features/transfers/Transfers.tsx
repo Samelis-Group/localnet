@@ -27,6 +27,15 @@ const statusTone: Record<TransferStatus, string> = {
 const statusLabel: Record<TransferStatus, string> = {
   queued: 'En attente', active: 'En cours', paused: 'En pause', done: 'Terminé', error: 'Erreur', cancelled: 'Annulé',
 }
+function directionLabel(t: Transfer) {
+  if (t.status === 'done') return t.direction === 'upload' ? 'Envoyé' : 'Reçu'
+  return t.direction === 'upload' ? 'Envoi' : 'Réception'
+}
+function peerLabel(t: Transfer) {
+  if (t.peerId === 'me' || t.peerName === 'Cet appareil') return 'Cet appareil'
+  if (t.peerId === 'lan' || t.peerName === 'Réseau local') return 'Réseau local'
+  return t.peerName || 'Appareil'
+}
 
 export default function Transfers() {
   const [params, setParams] = useSearchParams()
@@ -130,15 +139,15 @@ export default function Transfers() {
 
       <div className="card">
         <div className="row between wrap" style={{ marginBottom: 14, gap: 10 }}>
-          <Group gap="xs"><Text fw={700}>Historique des échanges</Text><Text size="xs" c="dimmed">{visible.length}</Text></Group>
-          <div className="row" style={{ gap: 8 }}>
+          <Group gap="xs"><Text fw={700}>Activité récente</Text><Badge variant="light" color="gray">{visible.length}</Badge></Group>
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
             <div className="chip-row">{filters.map((f) => <button key={f.id} className={`chip ${filter === f.id ? 'active' : ''}`} onClick={() => setFilter(f.id)}>{f.label}</button>)}</div>
-            <Button size="xs" variant="subtle" color="gray" onClick={() => { if (confirm('Effacer tout l’historique des transferts ?')) clearHistory() }}><Trash2 size={13} /> Effacer</Button>
+            {visible.length > 0 && <Button size="xs" variant="subtle" color="gray" onClick={() => { if (confirm('Effacer l’historique des transferts ?')) clearHistory() }}><Trash2 size={13} /> Effacer l’historique</Button>}
           </div>
         </div>
 
         {visible.length === 0 ? (
-          <Stack align="center" py="xl" gap="xs"><ThemeIcon size={52} radius="xl" variant="light" color="gray"><Clock size={22}/></ThemeIcon><Text fw={700}>Aucun transfert</Text><Text size="sm" c="dimmed" ta="center">Les fichiers envoyés ou reçus apparaîtront ici avec leur progression.</Text></Stack>
+          <Stack align="center" py="xl" gap="xs"><ThemeIcon size={52} radius="xl" variant="light" color="gray"><Clock size={22}/></ThemeIcon><Text fw={700}>Aucune activité pour l’instant</Text><Text size="sm" c="dimmed" ta="center">Quand tu envoies ou reçois un fichier, il apparaîtra ici.</Text></Stack>
         ) : visible.map((t) => <TransferItem key={t.id} transfer={t} fileExists={files.some((f) => f.id === t.fileId)} />)}
       </div>
 
@@ -163,26 +172,27 @@ export default function Transfers() {
 }
 
 function TransferItem({ transfer, fileExists }: { transfer: Transfer; fileExists: boolean }) {
-  const file = useAppStore((s) => s.files.find((f) => f.id === transfer.fileId))
+  const file = useAppStore((s) => s.files.find((f) => f.id === transfer.fileId) || s.remoteFiles.find((f) => f.id === transfer.fileId))
   const percent = Math.round((transfer.offset / Math.max(1, transfer.size)) * 100)
   const remaining = transfer.status === 'active' && transfer.speed > 0 ? (transfer.size - transfer.offset) / transfer.speed : 0
   const active = transfer.status === 'active' || transfer.status === 'queued'
+  const badgeColor = statusTone[transfer.status] === "accent" ? "teal" : statusTone[transfer.status] === "blue" ? "blue" : statusTone[transfer.status] === "warn" ? "yellow" : statusTone[transfer.status] === "danger" ? "red" : "gray"
 
   return (
     <div className="transfer-item">
       <div className="transfer-icon">{transfer.direction === 'upload' ? <ArrowUpFromLine size={17} /> : <ArrowDownToLine size={17} />}</div>
       <div className="grow">
         <div className="row between" style={{ gap: 8 }}>
-          <div className="row" style={{ gap: 7, minWidth: 0 }}>
+          <div className="row" style={{ gap: 7, minWidth: 0, flexWrap: 'wrap' }}>
             <span className="small strong truncate">{transfer.fileName}</span>
-            <Badge variant="light" color={statusTone[transfer.status] === "accent" ? "teal" : statusTone[transfer.status] === "blue" ? "blue" : statusTone[transfer.status] === "warn" ? "yellow" : statusTone[transfer.status] === "danger" ? "red" : statusTone[transfer.status] === "violet" ? "grape" : "gray"}>{statusLabel[transfer.status]}</Badge>
+            <Badge variant="light" color={badgeColor}>{directionLabel(transfer)} · {statusLabel[transfer.status]}</Badge>
           </div>
           <span className="tiny faint" style={{ flex: 'none' }}>{percent}%</span>
         </div>
         <div style={{ margin: '7px 0 5px' }}><Progress radius="xl" color="primary.8" size="sm" value={percent} /></div>
-        <div className="row between tiny faint">
-          <span>{formatBytes(transfer.offset)} / {formatBytes(transfer.size)} · {transfer.peerName}</span>
-          <span className="hidden-mobile">{active ? `${formatSpeed(transfer.speed)} · ${Math.ceil(remaining)} s restantes` : transfer.endedAt ? `Terminé à ${formatTime(transfer.endedAt)}` : relativeTime(transfer.startedAt)}</span>
+        <div className="row between tiny faint" style={{ gap: 8, flexWrap: 'wrap' }}>
+          <span>{formatBytes(transfer.offset)} / {formatBytes(transfer.size)} · {peerLabel(transfer)}</span>
+          <span>{active ? `${formatSpeed(transfer.speed)}${remaining ? ` · ~${Math.ceil(remaining)} s` : ''}` : transfer.endedAt ? formatTime(transfer.endedAt) : relativeTime(transfer.startedAt)}</span>
         </div>
         {transfer.error && <div className="tiny" style={{ color: 'var(--danger)' }}>{transfer.error}</div>}
       </div>

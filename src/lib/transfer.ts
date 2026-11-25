@@ -154,7 +154,7 @@ export async function downloadFile(file: LibraryFile) {
   if (!blob) return false
   const transfer: Transfer = {
     id: uid(), fileId: file.id, fileName: file.name, size: blob.size,
-    direction: 'download', peerId: 'me', peerName: 'Cet appareil', status: 'queued', offset: 0, speed: 0, startedAt: Date.now(),
+    direction: 'download', peerId: 'me', peerName: useAppStore.getState().settings.displayName || 'Cet appareil', status: 'queued', offset: 0, speed: 0, startedAt: Date.now(),
   }
   useAppStore.setState((s) => ({ transfers: [transfer, ...s.transfers] }))
   completionCallbacks.set(transfer.id, () => {

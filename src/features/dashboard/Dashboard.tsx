@@ -5,6 +5,8 @@ import {
   HardDrive, Radio, ShieldCheck, Users, Wifi, Zap,
 } from 'lucide-react'
 import { useAppStore } from '../../lib/store'
+import { getPeerId } from '../../lib/transport'
+import type { LibraryFile } from '../../lib/types'
 import { usePeerStore } from '../../lib/presence'
 import { useOnline } from '../../lib/hooks'
 import { formatBytes, relativeTime } from '../../lib/format'
@@ -23,6 +25,10 @@ export default function Dashboard() {
   const peers = usePeerStore((s) => s.peers)
   const networks = useAppStore((s) => s.networks)
   const activeNetworkId = useAppStore((s) => s.activeNetworkId)
+  const currentUserId = useAppStore((s) => s.currentUserId)
+  const me = users.find((u) => u.id === currentUserId)
+  const myName = settings.displayName || me?.name || 'Mon appareil'
+  const myPeerId = getPeerId()
 
   const stats = useMemo(() => {
     const totalBytes = files.reduce((sum, f) => sum + f.size, 0)
@@ -33,13 +39,22 @@ export default function Dashboard() {
   }, [files, transfers])
 
   const recentFiles = useMemo(() => [...files].sort((a, b) => b.createdAt - a.createdAt).slice(0, 4), [files])
-  const ownerName = (id: string) => users.find((u) => u.id === id)?.name ?? 'Inconnu'
+  const ownerName = (f: LibraryFile) => {
+    if (f.ownerId === currentUserId || f.ownerPeerId === myPeerId) return 'Toi'
+    return f.ownerName || users.find((u) => u.id === f.ownerId)?.name || 'Appareil du réseau'
+  }
+  const actorName = (id: string) => {
+    const u = users.find((x) => x.id === id)
+    if (!u) return 'Appareil du réseau'
+    if (u.id === currentUserId) return 'Toi'
+    return u.name
+  }
 
   return (
     <div className="stack">
       <div className="page-head">
         <div>
-          <h1 className="page-title">Bonjour, Alex 👋</h1>
+          <h1 className="page-title">Bonjour, {myName}</h1>
           <p className="page-sub">Voici l’état de votre réseau local, {settings.networkName}.</p>
         </div>
         <div className="page-actions">
@@ -90,7 +105,7 @@ export default function Dashboard() {
               <span className="activity-dot"><ActivityIcon size={14} /></span>
               <div className="grow">
                 <div className="small">{a.label}</div>
-                <div className="tiny faint">{relativeTime(a.createdAt)} · {ownerName(a.actorId)}</div>
+                <div className="tiny faint">{relativeTime(a.createdAt)} · {actorName(a.actorId)}</div>
               </div>
             </div>
           ))}
@@ -109,7 +124,7 @@ export default function Dashboard() {
               <FileIcon file={file} />
               <div className="grow">
                 <div className="small strong truncate">{file.name}</div>
-                <div className="tiny faint">{ownerName(file.ownerId)} · {relativeTime(file.createdAt)}</div>
+                <div className="tiny faint">{ownerName(file)} · {relativeTime(file.createdAt)}</div>
               </div>
               <span className="tiny muted">{formatBytes(file.size)}</span>
             </div>

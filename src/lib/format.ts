@@ -2,6 +2,21 @@ import type { FileCategory, Permission, Role } from './types'
 
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4)
 
+const DEVICE_ADJECTIVES = ['Rapide', 'Calme', 'Brillant', 'Agile', 'Serein', 'Vif', 'Lumineux', 'Noble', 'Astucieux', 'Discret']
+const DEVICE_NOUNS = ['Renard', 'Faucon', 'Lynx', 'Panda', 'Dauphin', 'Hibou', 'Koala', 'Loup', 'Tigre', 'Phoenix']
+export function generateDeviceName() {
+  const a = DEVICE_ADJECTIVES[Math.floor(Math.random() * DEVICE_ADJECTIVES.length)]
+  const n = DEVICE_NOUNS[Math.floor(Math.random() * DEVICE_NOUNS.length)]
+  const num = Math.floor(10 + Math.random() * 90)
+  return `${a}-${n}-${num}`
+}
+
+export function resolveDisplayName(settingsName?: string, userName?: string) {
+  const name = (settingsName || '').trim() || (userName || '').trim()
+  if (name && name !== 'Utilisateur' && name !== 'Alex Martin' && name !== 'Cet appareil') return name
+  return ''
+}
+
 export function formatBytes(bytes: number, digits = 1): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 B'
   const units = ['B', 'Ko', 'Mo', 'Go', 'To']

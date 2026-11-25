@@ -20,7 +20,7 @@ const makeUser = (id: string, name: string, email: string, role: User['role'], d
 })
 
 export const seedUsers: User[] = [
-  makeUser('me', 'Alex Martin', 'alex@localnet.lan', 'admin', 'Cet appareil', 0),
+  makeUser('me', 'Mon appareil', '', 'admin', 'Cet appareil', 0),
   makeUser('u-sophie', 'Sophie Diallo', 'sophie@localnet.lan', 'member', 'Firefox · Linux', 1),
   makeUser('u-karim', 'Karim Benali', 'karim@localnet.lan', 'member', 'Chrome · Windows', 2),
   makeUser('u-lea', 'Léa Moreau', 'lea@localnet.lan', 'guest', 'Safari · macOS', 3),
@@ -105,12 +105,12 @@ export const seedTransfers: Transfer[] = [
 export const seedMessages: ChatMessage[] = [
   { id: 'm-1', authorId: 'u-sophie', authorName: 'Sophie Diallo', color: AVATAR_COLORS[1], text: 'Bonjour ! La charte graphique est en ligne dans la bibliothèque 👋', createdAt: now - 2 * hour, room: 'general' },
   { id: 'm-2', authorId: 'u-karim', authorName: 'Karim Benali', color: AVATAR_COLORS[2], text: 'Parfait, je récupère le support de TP pour le cours de demain.', createdAt: now - 96 * min, room: 'general' },
-  { id: 'm-3', authorId: 'me', authorName: 'Alex Martin', color: AVATAR_COLORS[0], text: 'N’oubliez pas : tout fonctionne sans Internet 😉', createdAt: now - 74 * min, room: 'general' },
+  { id: 'm-3', authorId: 'u-sophie', authorName: 'Sophie Diallo', color: AVATAR_COLORS[1], text: 'N’oubliez pas : tout fonctionne sans Internet 😉', createdAt: now - 74 * min, room: 'general' },
   { id: 'm-4', authorId: 'u-thomas', authorName: 'Thomas Petit', color: AVATAR_COLORS[4], text: 'La vidéo de présentation est en cours de transfert, elle arrivera bientôt.', createdAt: now - 38 * min, room: 'general' },
 ]
 
 export const seedAnnouncements: Announcement[] = [
-  { id: 'a-1', title: 'Maintenance du serveur local', body: 'Le serveur sera brièvement redémarré ce soir à 20h. Les transferts repris automatiquement.', authorId: 'me', createdAt: now - 3 * hour, pinned: true },
+  { id: 'a-1', title: 'Maintenance du serveur local', body: 'Le serveur sera brièvement redémarré ce soir à 20h. Les transferts repris automatiquement.', authorId: 'u-sophie', createdAt: now - 3 * hour, pinned: true },
   { id: 'a-2', title: 'Nouvelle bibliothèque ouverte', body: 'La ressource « Catalogue 2026.csv » vient d’être publiée par Sophie.', authorId: 'u-sophie', createdAt: now - 9 * day, pinned: false },
 ]
 
