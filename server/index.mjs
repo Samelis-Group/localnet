@@ -312,7 +312,9 @@ wss.on('connection', (socket, request) => {
 })
 
 setInterval(() => {
-  for (const msg of lastPresence.values()) {
+  const now = Date.now()
+  for (const [id, msg] of lastPresence) {
+    if (msg?.peer) msg.peer.lastSeen = now
     const payload = JSON.stringify(msg)
     for (const client of wss.clients) if (client.readyState === WebSocket.OPEN) try { client.send(payload) } catch {}
   }
