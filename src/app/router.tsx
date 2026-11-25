@@ -1,9 +1,10 @@
-import { lazy, Suspense } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Center, Loader, Stack, Text } from '@mantine/core'
 import { AppLayout } from '../components/layout/AppLayout'
 import { Toaster } from '../components/Toaster'
 import { ErrorBoundary } from './ErrorBoundary'
+import { applySeo } from '../lib/seo'
 
 const Dashboard = lazy(() => import('../features/dashboard/Dashboard'))
 const Networks = lazy(() => import('../features/networks/Networks'))
@@ -26,10 +27,17 @@ function PageFallback() {
   )
 }
 
+function SeoManager() {
+  const { pathname } = useLocation()
+  useEffect(() => { applySeo(pathname) }, [pathname])
+  return null
+}
+
 export function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
+        <SeoManager />
         <Suspense fallback={<PageFallback />}>
           <Routes>
             <Route element={<AppLayout />}>

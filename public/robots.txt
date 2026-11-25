@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /administration
+Disallow: /parametres
+Disallow: /transferts
+Disallow: /membres
+Disallow: /messages
+Disallow: /tableau-de-bord
+
+Sitemap: https://localnet.samelis.org/sitemap.xml
