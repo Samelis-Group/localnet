@@ -126,7 +126,8 @@ export default function Library() {
                       <Badge variant="light" color={isPublic ? "teal" : "yellow"} leftSection={isPublic ? <Globe size={11} /> : <Lock size={11} />}>{isPublic ? "Public" : "Privé"}</Badge>
                       {file.remote ? <Badge variant="light" color="blue">Stocké</Badge> : <Badge variant="light" color="gray">Local</Badge>}
                       {file.cloneExpiresAt && <Badge variant="light" color="orange">Expire dans 24h</Badge>}
-                      {(file.ownerId === currentUserId || (file.ownerPeerId && file.ownerPeerId === myPeerId)) && <Badge variant="light" color="grape">Envoyé par toi</Badge>}
+                      {(file.ownerId === currentUserId || (file.ownerPeerId && file.ownerPeerId === myPeerId)) && !file.receivedAt && <Badge variant="light" color="grape">Envoyé par toi</Badge>}
+                      {file.receivedAt && <Badge variant="light" color="cyan">Reçu</Badge>}
                     </div>
                     <div className="tiny muted" style={{ marginTop: 3 }}>
                       {formatBytes(file.size)} · {ownerName(file)} · {relativeTime(file.createdAt)}

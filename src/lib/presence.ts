@@ -11,7 +11,7 @@ interface PeerStore {
   prune: () => void
 }
 
-const STALE = 14_000
+const STALE_REMOVE = 5 * 60_000
 
 export const usePeerStore = create<PeerStore>((set) => ({
   peers: [],
@@ -23,7 +23,7 @@ export const usePeerStore = create<PeerStore>((set) => ({
     }))
   },
   remove(id) { set((s) => ({ peers: s.peers.filter((p) => p.id !== id) })) },
-  prune() { set((s) => ({ peers: s.peers.filter((p) => Date.now() - p.lastSeen < STALE) })) },
+  prune() { set((s) => ({ peers: s.peers.filter((p) => Date.now() - p.lastSeen < STALE_REMOVE) })) },
 }))
 
 let configured = false
@@ -54,4 +54,7 @@ export function configurePresence() {
   publish({ type: 'sync', at: Date.now() })
   setInterval(() => usePeerStore.getState().prune(), 5000)
   setInterval(() => { if (isConnected()) void syncRemoteLibrary().catch(() => {}) }, 15000)
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) publish({ type: 'presence', peer: { id: sessionStorage.getItem('localnet:peer') || '', name: useAppStore.getState().settings.displayName || 'Appareil', color: '#01a275', device: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Navigateur', lastSeen: Date.now(), via: isConnected() ? 'websocket' : 'lan' } }) })
+  }
 }

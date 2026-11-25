@@ -153,7 +153,7 @@ export async function downloadFile(file: LibraryFile) {
         id: cloneId,
         remote: false,
         ownerId: 'me',
-        ownerName: useAppStore.getState().settings.displayName || 'Mon appareil',
+        ownerName: file.ownerName || 'Appareil du réseau',
         ownerPeerId: undefined,
         createdAt: now,
         receivedAt: now,

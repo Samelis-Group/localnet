@@ -98,13 +98,16 @@ export default function Networks() {
             <div className="strong small">{settings.displayName || me?.name || 'Mon appareil'}</div>
             <div className="tiny faint">Vous · maintenant</div>
           </div>
-          {peers.map((p) => (
-            <div key={p.id} className="device-card">
-              <div className="device-icon"><Laptop size={18} /></div>
-              <div className="strong small truncate" style={{ width: '100%' }}>{p.name}</div>
-              <div className="tiny faint">{p.device || 'Appareil'} · {relativeTime(p.lastSeen)}</div>
-            </div>
-          ))}
+          {peers.map((p) => {
+            const online = Date.now() - p.lastSeen < 20_000
+            return (
+              <div key={p.id} className="device-card" style={{ opacity: online ? 1 : 0.72 }}>
+                <div className="device-icon"><Laptop size={18} /></div>
+                <div className="strong small truncate" style={{ width: '100%' }}>{p.name || 'Appareil'}</div>
+                <div className="tiny faint">{p.device || 'Appareil'} · {online ? 'en ligne' : `inactif · ${relativeTime(p.lastSeen)}`}</div>
+              </div>
+            )
+          })}
         </div>
         {peers.length === 0 && <div className="tiny muted" style={{ marginTop: 12 }}>Aucun autre appareil pour l’instant. Partage le lien/QR ci-dessus.</div>}
       </div>
