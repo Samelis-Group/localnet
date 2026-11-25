@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from 'react'
+import { ActionIcon, Badge, Button, Group, Modal, Stack, Text, ThemeIcon } from '@mantine/core'
 import { ArrowDownToLine, Check, Copy, Globe, Lock, QrCode, Search, Send, Share2, Trash2, Upload, Users, Wifi } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../../lib/store'
@@ -9,9 +10,8 @@ import { downloadFile, ingestFiles, removeFile } from '../../lib/transfer'
 import { serverOriginForShare } from '../../lib/lan'
 import { getServerUrl, isConnected, subscribeStatus } from '../../lib/transport'
 import { FileIcon } from '../../components/files/FileRow'
-import { Badge, Button, EmptyState, Modal } from '../../components/ui'
 import { QRCode as QR } from '../../components/ui/QRCode'
-import { toast } from '../../components/ui/toast'
+import { toast } from '../../lib/toast'
 import type { LibraryFile } from '../../lib/types'
 
 type Target = { kind: 'public' } | { kind: 'peer'; id: string; name: string }
@@ -58,16 +58,16 @@ export default function Library() {
 
   return (
     <div className="stack">
-      <div className="card" style={{ padding: 20 }}>
-        <div className="row between" style={{ gap: 12, flexWrap: 'wrap' }}>
+      <div className="card library-hero">
+        <div className="library-hero-head">
           <div>
             <h1 className="page-title" style={{ marginBottom: 4 }}>Partager un fichier</h1>
             <p className="page-sub" style={{ margin: 0 }}>{lan.connected ? `${peers.length + 1} appareil(s) connecté(s) sur le même Wi-Fi` : 'Connecte-toi au même Wi-Fi pour voir les autres appareils'}</p>
           </div>
-          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-            {!settings.advancedMode && <Button variant="ghost" onClick={() => useAppStore.getState().setSettings({ advancedMode: true })}>Mode avancé</Button>}
-            <Button variant="primary" onClick={() => setAddOpen(true)}><Upload size={15} /> Ajouter un fichier</Button>
-          </div>
+          <Group gap="sm" wrap="wrap" className="library-hero-actions">
+            {!settings.advancedMode && <Button variant="subtle" color="gray" onClick={() => useAppStore.getState().setSettings({ advancedMode: true })}>Mode avancé</Button>}
+            <Button color="primary.8" leftSection={<Upload size={15} />} onClick={() => setAddOpen(true)}>Ajouter un fichier</Button>
+          </Group>
         </div>
       </div>
 
@@ -81,7 +81,7 @@ export default function Library() {
                 <div className="tiny muted">Ouvre le même lien LocalNet sur l’autre appareil.</div>
               </div>
             </div>
-            <Button size="sm" variant="blue" onClick={() => navigate('/parametres')}>Connecter</Button>
+            <Button size="xs" variant="light" color="blue" onClick={() => navigate('/parametres')}>Connecter</Button>
           </div>
         </div>
       )}
@@ -96,35 +96,40 @@ export default function Library() {
       )}
 
       <div className="card" style={{ padding: 0 }}>
-        <div className="row between" style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
+        <div className="row between" style={{ padding: '14px 16px', gap: 8 }}>
           <div className="small strong">Fichiers {settings.advancedMode ? '' : 'récents'}</div>
-          <Badge tone="blue">{visible.length}</Badge>
+          <Badge variant="light" color="blue">{visible.length}</Badge>
         </div>
         {visible.length === 0 ? (
-          <EmptyState icon={<Upload />} title="Aucun fichier" description="Ajoute un fichier, puis clique sur la personne qui doit le recevoir." action={<Button variant="primary" onClick={() => setAddOpen(true)}><Upload size={14} /> Ajouter</Button>} />
+          <Stack align="center" py="xl" gap="xs">
+            <ThemeIcon size={52} radius="xl" variant="light" color="gray"><Upload size={22} /></ThemeIcon>
+            <Text fw={700}>Aucun fichier</Text>
+            <Text size="xs" c="dimmed" ta="center">Ajoute un fichier, puis clique sur la personne qui doit le recevoir.</Text>
+            <Button color="primary.8" leftSection={<Upload size={14} />} onClick={() => setAddOpen(true)}>Ajouter</Button>
+          </Stack>
         ) : (
           <div style={{ display: 'grid' }}>
             {visible.map((file) => {
               const isPublic = file.visibility !== 'restricted'
               return (
-                <div key={file.id} className="file-row" style={{ gridTemplateColumns: 'auto 1fr auto', gap: 12, alignItems: 'center' }}>
+                <div key={file.id} className="file-row library-row">
                   <FileIcon file={file} size={42} />
                   <div style={{ minWidth: 0 }}>
                     <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
                       <span className="strong small truncate">{file.name}</span>
-                      <Badge tone={isPublic ? 'accent' : 'warn'}>{isPublic ? <><Globe size={11} /> Public</> : <><Lock size={11} /> Privé</>}</Badge>
-                      {file.remote ? <Badge tone="blue">Stocké</Badge> : <Badge>Local</Badge>}
-                      {!isPublic && file.ownerId === currentUserId && <Badge tone="violet">À toi</Badge>}
+                      <Badge variant="light" color={isPublic ? "teal" : "yellow"} leftSection={isPublic ? <Globe size={11} /> : <Lock size={11} />}>{isPublic ? "Public" : "Privé"}</Badge>
+                      {file.remote ? <Badge variant="light" color="blue">Stocké</Badge> : <Badge variant="light" color="gray">Local</Badge>}
+                      {!isPublic && file.ownerId === currentUserId && <Badge variant="light" color="grape">À toi</Badge>}
                     </div>
                     <div className="tiny muted" style={{ marginTop: 3 }}>
                       {formatBytes(file.size)} · {ownerName(file)} · {relativeTime(file.createdAt)}
                       {!isPublic && file.allowedNames?.length ? ` · pour ${file.allowedNames.join(', ')}` : ''}
                     </div>
                   </div>
-                  <div className="row" style={{ gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <Button size="sm" onClick={() => void downloadFile(file).then((ok) => toast[ok ? 'success' : 'error'](ok ? 'Téléchargement lancé' : 'Impossible'))}><ArrowDownToLine size={13} /></Button>
-                    <Button size="sm" variant="blue" onClick={() => setShare(file)}><Share2 size={13} /></Button>
-                    {canDelete(file) && <button className="icon-btn" style={{ border: 0, color: 'var(--danger)' }} onClick={() => { if (confirm('Supprimer ce fichier ?')) void removeFile(file).then(() => toast.success('Supprimé')) }}><Trash2 size={14} /></button>}
+                  <div className="row library-actions">
+                    <Button size="xs" variant="default" leftSection={<ArrowDownToLine size={13} />} onClick={() => void downloadFile(file).then((ok) => toast[ok ? 'success' : 'error'](ok ? 'Téléchargement lancé' : 'Impossible'))}>Télécharger</Button>
+                    <Button size="xs" variant="light" color="blue" leftSection={<Share2 size={13} />} onClick={() => setShare(file)}>Partager</Button>
+                    {canDelete(file) && <ActionIcon variant="light" color="red" size="lg" radius="md" className="library-delete-btn" onClick={() => { if (confirm('Supprimer ce fichier ?')) void removeFile(file).then(() => toast.success('Supprimé')) }} aria-label="Supprimer"><Trash2 size={16} /></ActionIcon>}
                   </div>
                 </div>
               )
@@ -171,29 +176,27 @@ function SendFlowModal({ peers, onClose, lanConnected }: { peers: { id: string; 
   }
 
   return (
-    <Modal title="Envoyer un fichier" onClose={onClose}>
+    <Modal opened onClose={onClose} title="Envoyer un fichier" centered radius="lg">
       <div className={`dropzone ${dragOver ? 'over' : ''}`} onClick={() => inputRef.current?.click()} onDragOver={(e) => { e.preventDefault(); setDragOver(true) }} onDragLeave={() => setDragOver(false)} onDrop={onDrop} style={{ marginBottom: 14 }}>
         <div className="dropzone-icon"><Upload size={24} /></div>
-        <div className="strong">{files.length ? `${files.length} fichier(s) prêt(s)` : '1. Choisis un fichier'}</div>
-        <div className="tiny muted" style={{ marginTop: 4 }}>{files.length ? files.map((f) => f.name).join(', ') : 'Clique ou glisse-dépose ici'}</div>
+        <Text fw={700}>{files.length ? `${files.length} fichier(s) prêt(s)` : '1. Choisis un fichier'}</Text>
+        <Text size="xs" c="dimmed" mt={4}>{files.length ? files.map((f) => f.name).join(', ') : 'Clique ou glisse-dépose ici'}</Text>
       </div>
       <input ref={inputRef} type="file" multiple hidden onChange={onInput} />
 
-      <div className="small strong" style={{ marginBottom: 8 }}>2. Clique sur la personne qui doit recevoir</div>
-      <div className="stack" style={{ gap: 8, marginBottom: 10 }}>
-        <button className="card pad-sm row between" style={{ cursor: 'pointer', opacity: !files.length || busy ? 0.7 : 1 }} onClick={() => void send({ kind: 'public' })} disabled={busy}>
-          <span className="row" style={{ gap: 10 }}><Globe size={16} style={{ color: 'var(--accent)' }} /><span><div className="small strong">Tout le monde</div><div className="tiny muted">Tous les appareils du réseau</div></span></span>
-          {sentTo === 'tout le monde' ? <Check size={16} style={{ color: 'var(--accent)' }} /> : <Send size={15} style={{ color: 'var(--muted)' }} />}
-        </button>
+      <Text size="xs" fw={700} mb={8}>2. Clique sur la personne qui doit recevoir</Text>
+      <Stack gap={8} mb={10}>
+        <Button variant="default" justify="space-between" fullWidth h="auto" py="sm" disabled={!files.length || busy} onClick={() => void send({ kind: 'public' })} rightSection={sentTo === 'tout le monde' ? <Check size={16} color="var(--accent)" /> : <Send size={15} />}>
+          <Group gap={10}><Globe size={16} color="var(--accent)" /><div style={{ textAlign: 'left' }}><Text size="xs" fw={700}>Tout le monde</Text><Text size="xs" c="dimmed">Tous les appareils du réseau</Text></div></Group>
+        </Button>
         {peers.map((p) => (
-          <button key={p.id} className="card pad-sm row between" style={{ cursor: 'pointer', opacity: !files.length || busy ? 0.7 : 1 }} onClick={() => void send({ kind: 'peer', id: p.id, name: p.name })} disabled={busy}>
-            <span className="row" style={{ gap: 10 }}><Users size={16} style={{ color: 'var(--accent-2)' }} /><span><div className="small strong">{p.name}</div><div className="tiny muted">{p.device || 'Appareil connecté'}</div></span></span>
-            {sentTo === p.name ? <Check size={16} style={{ color: 'var(--accent)' }} /> : <Send size={15} style={{ color: 'var(--muted)' }} />}
-          </button>
+          <Button key={p.id} variant="default" justify="space-between" fullWidth h="auto" py="sm" disabled={!files.length || busy} onClick={() => void send({ kind: 'peer', id: p.id, name: p.name })} rightSection={sentTo === p.name ? <Check size={16} color="var(--accent)" /> : <Send size={15} />}>
+            <Group gap={10}><Users size={16} color="var(--accent-2)" /><div style={{ textAlign: 'left' }}><Text size="xs" fw={700}>{p.name}</Text><Text size="xs" c="dimmed">{p.device || 'Appareil connecté'}</Text></div></Group>
+          </Button>
         ))}
-        {peers.length === 0 && <div className="tiny muted">{lanConnected ? 'Aucun autre appareil connecté pour le moment.' : 'Connecte le partage LAN pour voir les autres appareils.'}</div>}
-      </div>
-      {busy && <div className="tiny muted">Envoi en cours…</div>}
+        {peers.length === 0 && <Text size="xs" c="dimmed">{lanConnected ? 'Aucun autre appareil connecté pour le moment.' : 'Connecte le partage LAN pour voir les autres appareils.'}</Text>}
+      </Stack>
+      {busy && <Text size="xs" c="dimmed">Envoi en cours…</Text>}
     </Modal>
   )
 }
@@ -202,14 +205,14 @@ function ShareModal({ file, onClose }: { file: LibraryFile; onClose: () => void 
   const link = `${serverOriginForShare()}/partage/${file.id}`
   const copy = async () => { try { await navigator.clipboard.writeText(link); toast.success('Lien copié') } catch { toast.info(link) } }
   return (
-    <Modal title="Partager" onClose={onClose}>
-      <div className="row" style={{ gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <QR value={link} />
+    <Modal opened onClose={onClose} title="Partager" centered radius="lg">
+      <div className="row share-modal-grid" style={{ gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div className="share-modal-qr"><QR value={link} /></div>
         <div className="grow">
-          <div className="small strong">{file.name}</div>
-          <div className="tiny muted" style={{ marginBottom: 8 }}><QrCode size={12} style={{ verticalAlign: -2 }} /> Scanne ou copie le lien.</div>
-          <div className="input mono tiny" style={{ wordBreak: 'break-all', minHeight: 42 }}>{link}</div>
-          <Button variant="primary" className="block" style={{ marginTop: 10 }} onClick={() => void copy()}><Copy size={14} /> Copier</Button>
+          <Text size="xs" fw={700}>{file.name}</Text>
+          <Text size="xs" c="dimmed" mb={8}><QrCode size={12} style={{ verticalAlign: -2 }} /> Scanne ou copie le lien.</Text>
+          <Text className="input mono tiny" style={{ wordBreak: 'break-all', minHeight: 42 }}>{link}</Text>
+          <Button color="primary.8" fullWidth mt={10} leftSection={<Copy size={14} />} onClick={() => void copy()}>Copier</Button>
         </div>
       </div>
     </Modal>

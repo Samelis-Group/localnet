@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
+import { ActionIcon, Avatar, Badge, Button, Modal, Switch, Text } from '@mantine/core'
 import { Ban, Mail, Search, ShieldCheck, Trash2, UserPlus, Users } from 'lucide-react'
 import { useAppStore } from '../../lib/store'
 import { usePeerStore } from '../../lib/presence'
 import { useDebouncedValue } from '../../lib/hooks'
 import { DEFAULT_PERMISSIONS, formatDate, PERMISSION_LABELS, ROLE_LABELS, relativeTime } from '../../lib/format'
-import { Avatar, Badge, Button, Modal, SectionTitle, Toggle } from '../../components/ui'
-import { toast } from '../../components/ui/toast'
+import { toast } from '../../lib/toast'
 import type { Permission, Role } from '../../lib/types'
 
 const roles: Role[] = ['admin', 'member', 'guest']
@@ -49,7 +49,7 @@ export default function Members() {
           <h1 className="page-title">Membres & appareils</h1>
           <p className="page-sub">{users.length} comptes · {peers.length + 1} connectés · rôles et permissions granulaires.</p>
         </div>
-        <Button variant="primary" onClick={() => setInviteOpen(true)}><UserPlus size={15} /> Inviter un membre</Button>
+        <Button color="primary.8" onClick={() => setInviteOpen(true)}><UserPlus size={15} /> Inviter un membre</Button>
       </div>
 
       <div className="grid stats">
@@ -61,7 +61,7 @@ export default function Members() {
 
       <div className="card">
         <div className="row between" style={{ marginBottom: 14 }}>
-          <SectionTitle>Liste des membres <small>{visible.length}</small></SectionTitle>
+          <Text fw={700} mb="sm">Liste des membres <small>{visible.length}</small></Text>
           <div className="top-search" style={{ margin: 0, width: 240 }}><Search size={14} /><input className="input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher…" /></div>
         </div>
         <div className="file-row header" style={{ gridTemplateColumns: '40px minmax(0,1fr) 130px 120px 100px 110px' }}>
@@ -73,7 +73,7 @@ export default function Members() {
             <div className="file-row" key={user.id} style={{ gridTemplateColumns: '40px minmax(0,1fr) 130px 120px 100px 110px' }}>
               <Avatar name={user.name} color={user.color} />
               <div className="grow" style={{ cursor: 'pointer' }} onClick={() => setDetailId(user.id)}>
-                <div className="row" style={{ gap: 6 }}><span className="file-name truncate">{user.name}</span>{user.id === currentUserId && <Badge tone="accent">Vous</Badge>}</div>
+                <div className="row" style={{ gap: 6 }}><span className="file-name truncate">{user.name}</span>{user.id === currentUserId && <Badge variant="light" color="teal">Vous</Badge>}</div>
                 <div className="file-meta truncate">{user.email}</div>
               </div>
               <select className="select" style={{ padding: '5px 7px', fontSize: 11.5 }} value={user.role} disabled={user.id === currentUserId} onChange={(e) => updateMemberRole(user.id, e.target.value as Role)}>
@@ -82,10 +82,10 @@ export default function Members() {
               <span className="tiny faint">{relativeTime(user.lastSeen)}</span>
               <span className="row" style={{ gap: 6 }}><span className={`dot ${user.blocked ? 'offline' : isOnline ? '' : 'warn'}`} /> <span className="tiny">{user.blocked ? 'Bloqué' : isOnline ? 'En ligne' : 'Absent'}</span></span>
               <div className="row" style={{ gap: 3 }}>
-                <button className="icon-btn" style={{ border: 0, background: 'transparent' }} onClick={() => setDetailId(user.id)} aria-label="Détails"><ShieldCheck size={14} /></button>
+                <ActionIcon variant="subtle" color="gray" size={34} radius="md" onClick={() => setDetailId(user.id)} aria-label="Détails"><ShieldCheck size={15} /></ActionIcon>
                 {user.id !== currentUserId && <>
-                  <button className="icon-btn" style={{ border: 0, background: 'transparent' }} onClick={() => { toggleBlockMember(user.id); toast.info(user.blocked ? 'Membre débloqué' : 'Membre bloqué') }} aria-label="Bloquer"><Ban size={14} /></button>
-                  <button className="icon-btn" style={{ border: 0, background: 'transparent' }} onClick={() => { if (confirm(`Retirer ${user.name} du réseau ?`)) { removeMember(user.id); toast.success('Membre retiré') } }} aria-label="Supprimer"><Trash2 size={14} /></button>
+                  <ActionIcon variant="subtle" color="gray" size={34} radius="md" onClick={() => { toggleBlockMember(user.id); toast.info(user.blocked ? 'Membre débloqué' : 'Membre bloqué') }} aria-label="Bloquer"><Ban size={15} /></ActionIcon>
+                  <ActionIcon variant="subtle" color="red" size={34} radius="md" onClick={() => { if (confirm(`Retirer ${user.name} du réseau ?`)) { removeMember(user.id); toast.success('Membre retiré') } }} aria-label="Supprimer"><Trash2 size={15} /></ActionIcon>
                 </>}
               </div>
             </div>
@@ -95,7 +95,7 @@ export default function Members() {
 
       <div className="grid two">
         <div className="card">
-          <SectionTitle>Répartition par rôle</SectionTitle>
+          <Text fw={700} mb="sm">Répartition par rôle</Text>
           {roles.map((r) => {
             const count = users.filter((u) => u.role === r).length
             return (
@@ -107,44 +107,44 @@ export default function Members() {
           })}
         </div>
         <div className="card">
-          <SectionTitle>Groupes</SectionTitle>
+          <Text fw={700} mb="sm">Groupes</Text>
           {networks.flatMap((n) => n.groups).map((g) => (
-            <div className="row between" key={g.id} style={{ padding: '7px 0', borderBottom: '1px solid var(--border)' }}>
+            <div className="row between" key={g.id} style={{ padding: '8px 0' }}>
               <span className="small row" style={{ gap: 7 }}><span style={{ width: 8, height: 8, borderRadius: 8, background: g.color }} />{g.name}</span>
               <span className="tiny faint">{g.memberIds.length} membre(s)</span>
             </div>
           ))}
-          <Button variant="ghost" className="block" style={{ marginTop: 12 }} onClick={() => toast.info('Gérez les groupes depuis l’onglet Réseaux')}>Gérer les groupes</Button>
+          <Button variant="subtle" color="gray" className="block" style={{ marginTop: 12 }} onClick={() => toast.info('Gérez les groupes depuis l’onglet Réseaux')}>Gérer les groupes</Button>
         </div>
       </div>
 
       {inviteOpen && (
-        <Modal title="Inviter un membre" onClose={() => setInviteOpen(false)}>
+        <Modal opened centered radius="lg" title="Inviter un membre" onClose={() => setInviteOpen(false)}>
           <div className="field"><label>Nom complet</label><input className="input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Camille Durand" /></div>
           <div className="field"><label>Adresse e-mail locale</label><input className="input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="camille@localnet.lan" /></div>
           <div className="field"><label>Rôle</label><select className="select" value={role} onChange={(e) => setRole(e.target.value as Role)}>{roles.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}</select></div>
           <div className="card pad-sm" style={{ marginBottom: 14 }}><div className="tiny muted">Les droits par défaut du rôle seront appliqués : {DEFAULT_PERMISSIONS[role].map((p) => PERMISSION_LABELS[p]).join(', ')}.</div></div>
-          <div className="modal-foot"><Button variant="ghost" onClick={() => setInviteOpen(false)}>Annuler</Button><Button variant="primary" onClick={handleInvite}><Mail size={14} /> Envoyer l’invitation</Button></div>
+          <div className="modal-foot"><Button variant="subtle" color="gray" onClick={() => setInviteOpen(false)}>Annuler</Button><Button color="primary.8" onClick={handleInvite}><Mail size={14} /> Envoyer l’invitation</Button></div>
         </Modal>
       )}
 
       {detail && (
-        <Modal title={`Profil · ${detail.name}`} onClose={() => setDetailId(null)}>
+        <Modal opened centered radius="lg" title={`Profil · ${detail.name}`} onClose={() => setDetailId(null)}>
           <div className="row" style={{ gap: 14, marginBottom: 18 }}>
             <Avatar name={detail.name} color={detail.color} size="lg" />
             <div className="grow"><div className="strong">{detail.name}</div><div className="small muted">{detail.email}</div><div className="tiny faint">Membre depuis le {formatDate(detail.joinedAt)} · {detail.device}</div></div>
-            <Badge tone={detail.role === 'admin' ? 'accent' : detail.role === 'guest' ? 'warn' : 'blue'}>{ROLE_LABELS[detail.role]}</Badge>
+            <Badge variant="light" color={detail.role === "admin" ? "teal" : detail.role === "guest" ? "yellow" : "blue"}>{ROLE_LABELS[detail.role]}</Badge>
           </div>
-          <SectionTitle>Permissions individuelles</SectionTitle>
+          <Text fw={700} mb="sm">Permissions individuelles</Text>
           <div className="card pad-sm" style={{ marginBottom: 14 }}>
             {permissions.map((p) => (
-              <div className="row between" key={p} style={{ padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+              <div className="row between" key={p} style={{ padding: '8px 0' }}>
                 <span className="small">{PERMISSION_LABELS[p]}</span>
-                <Toggle checked={detail.permissions.includes(p)} onChange={() => toast.info('Modifiez le rôle pour ajuster les droits')} />
+                <Switch checked={detail.permissions.includes(p)} onChange={()=> toast.info('Modifiez le rôle pour ajuster les droits')} color="primary.8" />
               </div>
             ))}
           </div>
-          <div className="modal-foot"><Button variant="ghost" onClick={() => setDetailId(null)}>Fermer</Button><Button variant="danger" onClick={() => { if (confirm('Retirer ce membre ?')) { removeMember(detail.id); setDetailId(null) } }}><Trash2 size={14} /> Retirer</Button></div>
+          <div className="modal-foot"><Button variant="subtle" color="gray" onClick={() => setDetailId(null)}>Fermer</Button><Button variant="light" color="red" onClick={() => { if (confirm('Retirer ce membre ?')) { removeMember(detail.id); setDetailId(null) } }}><Trash2 size={14} /> Retirer</Button></div>
         </Modal>
       )}
     </div>

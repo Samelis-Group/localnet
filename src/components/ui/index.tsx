@@ -86,7 +86,7 @@ export function Modal({ title, onClose, children, wide = false }: { title: strin
   }, [onClose])
   return (
     <MModal opened onClose={onClose} title={<Text fw={700}>{title}</Text>} size={wide ? 'xl' : 'lg'} centered radius="lg"
-      overlayProps={{ blur: 6, backgroundOpacity: 0.55 }}>
+      overlayProps={{ blur: 6, backgroundOpacity: 0.55 }} fullScreen={typeof window !== 'undefined' && window.innerWidth < 560}>
       {children}
     </MModal>
   )

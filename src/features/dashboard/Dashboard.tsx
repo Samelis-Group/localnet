@@ -8,7 +8,7 @@ import { useAppStore } from '../../lib/store'
 import { usePeerStore } from '../../lib/presence'
 import { useOnline } from '../../lib/hooks'
 import { formatBytes, relativeTime } from '../../lib/format'
-import { Avatar, Badge, Button, EmptyState, ProgressBar, SectionTitle, StatCard } from '../../components/ui'
+import { Avatar, Badge, Button, Card, Group, Progress, Stack, Text, ThemeIcon } from '@mantine/core'
 import { FileIcon } from '../../components/files/FileRow'
 import { downloadFile } from '../../lib/transfer'
 
@@ -43,23 +43,23 @@ export default function Dashboard() {
           <p className="page-sub">Voici l’état de votre réseau local, {settings.networkName}.</p>
         </div>
         <div className="page-actions">
-          <Button variant="blue" onClick={() => navigate('/reseaux')}><Radio size={15} /> Voir les réseaux</Button>
-          <Button variant="primary" onClick={() => navigate('/transferts?add=1')}><ArrowUpFromLine size={15} /> Nouveau transfert</Button>
+          <Button variant="light" color="blue" onClick={() => navigate('/reseaux')}><Radio size={15} /> Voir les réseaux</Button>
+          <Button color="primary.8" onClick={() => navigate('/transferts?add=1')}><ArrowUpFromLine size={15} /> Nouveau transfert</Button>
         </div>
       </div>
 
       <div className="grid stats">
-        <StatCard icon={<FolderOpen size={17} />} label="Ressources partagées" value={String(files.length)} hint={`${formatBytes(stats.totalBytes)}`} tone="blue" />
-        <StatCard icon={<ArrowLeftRight size={17} />} label="Transferts actifs" value={String(stats.active)} hint={`${stats.done} terminés`} />
-        <StatCard icon={<Users size={17} />} label="Appareils connectés" value={String(peers.length + 1)} hint="locale + LAN" tone="violet" />
-        <StatCard icon={<ArrowDownToLine size={17} />} label="Téléchargements" value={String(stats.downloads)} hint="depuis le début" tone="warn" />
+        <Card withBorder={false} className="glass-panel"><Group justify="space-between"><Text size="sm" c="dimmed">Ressources partagées</Text><ThemeIcon variant="light" color="blue"><FolderOpen size={17}/></ThemeIcon></Group><Text fw={800} size="xl">{files.length}</Text><Text size="xs" c="dimmed">{formatBytes(stats.totalBytes)}</Text></Card>
+        <Card withBorder={false} className="glass-panel"><Group justify="space-between"><Text size="sm" c="dimmed">Transferts actifs</Text><ThemeIcon variant="light"><ArrowLeftRight size={17}/></ThemeIcon></Group><Text fw={800} size="xl">{stats.active}</Text><Text size="xs" c="dimmed">{stats.done} terminés</Text></Card>
+        <Card withBorder={false} className="glass-panel"><Group justify="space-between"><Text size="sm" c="dimmed">Appareils connectés</Text><ThemeIcon variant="light" color="grape"><Users size={17}/></ThemeIcon></Group><Text fw={800} size="xl">{peers.length + 1}</Text><Text size="xs" c="dimmed">locale + LAN</Text></Card>
+        <Card withBorder={false} className="glass-panel"><Group justify="space-between"><Text size="sm" c="dimmed">Téléchargements</Text><ThemeIcon variant="light" color="yellow"><ArrowDownToLine size={17}/></ThemeIcon></Group><Text fw={800} size="xl">{stats.downloads}</Text><Text size="xs" c="dimmed">depuis le début</Text></Card>
       </div>
 
       <div className="grid two">
         <div className="card glow">
           <div className="row between" style={{ marginBottom: 15 }}>
-            <SectionTitle>État du réseau</SectionTitle>
-            <Badge tone={online ? 'accent' : 'danger'}>{online ? 'Opérationnel' : 'Mode hors ligne'}</Badge>
+            <Text fw={700} mb="sm">État du réseau</Text>
+            <Badge variant="light" color={online ? "teal" : "red"}>{online ? "Opérationnel" : "Mode hors ligne"}</Badge>
           </div>
           <div className="row" style={{ gap: 12, marginBottom: 18 }}>
             <div className="stat-icon" style={{ width: 44, height: 44 }}><Wifi size={21} /></div>
@@ -68,7 +68,7 @@ export default function Dashboard() {
               <div className="tiny muted">Code de connexion : <span className="mono">{networks.find((n) => n.id === activeNetworkId)?.code ?? 'LOCALNET'}</span></div>
             </div>
             <div className="avatar-stack">
-              {users.slice(0, 3).map((u) => <Avatar key={u.id} name={u.name} color={u.color} size="sm" />)}
+              {users.slice(0, 3).map((u) => <Avatar key={u.id} name={u.name} color={u.color} size="xs" />)}
               <span className="avatar sm" style={{ background: 'var(--panel-3)', color: 'var(--muted)' }}>+{Math.max(0, users.length - 3)}</span>
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function Dashboard() {
 
         <div className="card">
           <div className="row between" style={{ marginBottom: 12 }}>
-            <SectionTitle>Activité récente</SectionTitle>
+            <Text fw={700} mb="sm">Activité récente</Text>
             <span className="tiny faint">Temps réel</span>
           </div>
           {activities.slice(0, 5).map((a) => (
@@ -94,18 +94,18 @@ export default function Dashboard() {
               </div>
             </div>
           ))}
-          <Button variant="ghost" className="block" style={{ marginTop: 8 }} onClick={() => navigate('/administration')}>Tout voir</Button>
+          <Button variant="subtle" color="gray" className="block" style={{ marginTop: 8 }} onClick={() => navigate('/administration')}>Tout voir</Button>
         </div>
       </div>
 
       <div className="grid two">
         <div className="card">
           <div className="row between" style={{ marginBottom: 12 }}>
-            <SectionTitle>Fichiers récents</SectionTitle>
+            <Text fw={700} mb="sm">Fichiers récents</Text>
             <button className="btn ghost sm" onClick={() => navigate('/bibliotheque')}>Voir tout</button>
           </div>
-          {recentFiles.length === 0 ? <EmptyState icon={<FolderOpen />} title="Aucun fichier" description="Ajoutez vos premiers fichiers partagés." /> : recentFiles.map((file) => (
-            <div className="row" key={file.id} style={{ padding: '9px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }} onClick={() => void downloadFile(file)}>
+          {recentFiles.length === 0 ? <Stack align="center" py="xl" gap="xs"><ThemeIcon size={52} radius="xl" variant="light" color="gray"><FolderOpen size={22}/></ThemeIcon><Text fw={700}>Aucun fichier</Text><Text size="sm" c="dimmed" ta="center">Ajoutez vos premiers fichiers partagés.</Text></Stack> : recentFiles.map((file) => (
+            <div className="row" key={file.id} style={{ padding: '10px 0', cursor: 'pointer' }} onClick={() => void downloadFile(file)}>
               <FileIcon file={file} />
               <div className="grow">
                 <div className="small strong truncate">{file.name}</div>
@@ -118,17 +118,17 @@ export default function Dashboard() {
 
         <div className="card">
           <div className="row between" style={{ marginBottom: 12 }}>
-            <SectionTitle>Transferts en cours</SectionTitle>
-            <Badge tone={stats.active ? 'accent' : ''}>{stats.active}</Badge>
+            <Text fw={700} mb="sm">Transferts en cours</Text>
+            <Badge variant="light" color={stats.active ? "teal" : "gray"}>{stats.active}</Badge>
           </div>
           {transfers.filter((t) => t.status === 'active' || t.status === 'queued').slice(0, 4).map((t) => (
-            <div key={t.id} style={{ padding: '9px 0', borderBottom: '1px solid var(--border)' }}>
+            <div key={t.id} style={{ padding: '10px 0' }}>
               <div className="row between small"><span className="truncate">{t.fileName}</span><span className="tiny muted">{Math.round(t.offset / Math.max(1, t.size) * 100)}%</span></div>
-              <div style={{ marginTop: 7 }}><ProgressBar value={t.offset / Math.max(1, t.size) * 100} thin /></div>
+              <div style={{ marginTop: 7 }}><Progress radius="xl" color="primary.8" size="sm" value={t.offset / Math.max(1, t.size) * 100} /></div>
             </div>
           ))}
           {stats.active === 0 && (
-            <EmptyState icon={<HardDrive />} title="Aucun transfert actif" description="Les transferts en cours apparaîtront ici." action={<Button size="sm" onClick={() => navigate('/transferts?add=1')}>Envoyer un fichier</Button>} />
+            <Stack align="center" py="md" gap="xs"><ThemeIcon size={44} radius="xl" variant="light" color="gray"><HardDrive size={20}/></ThemeIcon><Text fw={700}>Aucun transfert actif</Text><Text size="sm" c="dimmed" ta="center">Les transferts en cours apparaîtront ici.</Text><Button size="xs" onClick={() => navigate("/transferts?add=1")}>Envoyer un fichier</Button></Stack>
           )}
           <div className="row" style={{ gap: 8, marginTop: 12 }}>
             <ShieldCheck size={15} style={{ color: 'var(--accent)' }} />

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { ActionIcon, Badge, Button, Card, Group, Modal, Progress, Stack, Text, ThemeIcon } from '@mantine/core'
 import {
   ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Clock, FileArchive, FolderUp,
   Pause, Play, Plus, RefreshCw, Trash2, UploadCloud, X,
@@ -9,8 +10,7 @@ import { usePeerStore } from '../../lib/presence'
 import { cancelTransfer, downloadFile, ingestFiles, pauseTransfer, resumeTransfer } from '../../lib/transfer'
 import { getServerUrl, isConnected, subscribeStatus } from '../../lib/transport'
 import { formatBytes, formatSpeed, formatTime, relativeTime } from '../../lib/format'
-import { Badge, Button, EmptyState, Modal, ProgressBar, SectionTitle, StatCard } from '../../components/ui'
-import { toast } from '../../components/ui/toast'
+import { toast } from '../../lib/toast'
 import type { Transfer, TransferStatus } from '../../lib/types'
 
 const filters: { id: TransferStatus | 'all'; label: string }[] = [
@@ -95,28 +95,28 @@ export default function Transfers() {
           <p className="page-sub">Envoi par blocs, reprise automatique et vérification d’intégrité — même hors ligne.</p>
         </div>
         <div className="page-actions">
-          <Button variant="blue" onClick={() => folderRef.current?.click()}><FolderUp size={15} /> Partager un dossier</Button>
-          <Button variant="primary" onClick={() => setParams({ add: '1' })}><Plus size={15} /> Ajouter des fichiers</Button>
+          <Button variant="light" color="blue" onClick={() => folderRef.current?.click()}><FolderUp size={15} /> Partager un dossier</Button>
+          <Button color="primary.8" onClick={() => setParams({ add: '1' })}><Plus size={15} /> Ajouter des fichiers</Button>
         </div>
       </div>
 
       <div className="grid stats">
-        <StatCard icon={<ArrowUpFromLine size={17} />} label="En cours" value={String(stats.active)} hint="file active" />
-        <StatCard icon={<CheckCircle2 size={17} />} label="Terminés" value={String(stats.done)} hint="cette session" tone="violet" />
-        <StatCard icon={<FileArchive size={17} />} label="Volume échangé" value={formatBytes(stats.volume)} hint="données locales" tone="blue" />
-        <StatCard icon={<RefreshCw size={17} />} label="Débit instantané" value={formatSpeed(stats.speed)} hint="tous appareils" tone="warn" />
+        <Card withBorder={false} className="glass-panel"><Group justify="space-between"><Text size="sm" c="dimmed">En cours</Text><ThemeIcon variant="light"><ArrowUpFromLine size={17}/></ThemeIcon></Group><Text fw={800} size="xl">{String(stats.active)}</Text><Text size="xs" c="dimmed">file active</Text></Card>
+        <Card withBorder={false} className="glass-panel"><Group justify="space-between"><Text size="sm" c="dimmed">Terminés</Text><ThemeIcon variant="light" color="grape"><CheckCircle2 size={17}/></ThemeIcon></Group><Text fw={800} size="xl">{String(stats.done)}</Text><Text size="xs" c="dimmed">cette session</Text></Card>
+        <Card withBorder={false} className="glass-panel"><Group justify="space-between"><Text size="sm" c="dimmed">Volume échangé</Text><ThemeIcon variant="light" color="blue"><FileArchive size={17}/></ThemeIcon></Group><Text fw={800} size="xl">{formatBytes(stats.volume)}</Text><Text size="xs" c="dimmed">données locales</Text></Card>
+        <Card withBorder={false} className="glass-panel"><Group justify="space-between"><Text size="sm" c="dimmed">Débit instantané</Text><ThemeIcon variant="light" color="yellow"><RefreshCw size={17}/></ThemeIcon></Group><Text fw={800} size="xl">{formatSpeed(stats.speed)}</Text><Text size="xs" c="dimmed">tous appareils</Text></Card>
       </div>
 
       <div className="card">
-        <SectionTitle hint="Glissez-déposez ou sélectionnez">Zone de dépôt</SectionTitle>
+        <Group gap="xs" mb="sm"><Text fw={700}>Zone de dépôt</Text><Text size="xs" c="dimmed">Glissez-déposez ou sélectionnez</Text></Group>
         <div className={`dropzone ${dragOver ? 'over' : ''}`} onClick={() => inputRef.current?.click()} onDragOver={(e) => { e.preventDefault(); setDragOver(true) }} onDragLeave={() => setDragOver(false)} onDrop={onDrop}>
           <div className="dropzone-icon"><UploadCloud size={25} /></div>
           <div className="strong">Déposez vos fichiers ici</div>
           <div className="small muted" style={{ marginTop: 4 }}>{serverUrl ? (connected ? "Ils seront partagés avec les appareils connectés au serveur LAN." : "Serveur LAN configuré, en attente de connexion...") : "Mode local: configurez un serveur LAN dans Paramètres pour partager entre PC."}</div>
           <div className="row" style={{ justifyContent: 'center', gap: 8, marginTop: 14 }}>
-            <Badge tone="accent">Blocs de {chunkSize} Mo</Badge>
-            <Badge tone="blue">{serverUrl ? "Partage LAN" : "Local uniquement"}</Badge>
-            <Badge tone="violet">SHA-256</Badge>
+            <Badge variant="light" color="teal">Blocs de {chunkSize} Mo</Badge>
+            <Badge variant="light" color="blue">{serverUrl ? "Partage LAN" : "Local uniquement"}</Badge>
+            <Badge variant="light" color="grape">SHA-256</Badge>
           </div>
         </div>
         <div className="row" style={{ marginTop: 12, gap: 10 }}>
@@ -130,15 +130,15 @@ export default function Transfers() {
 
       <div className="card">
         <div className="row between wrap" style={{ marginBottom: 14, gap: 10 }}>
-          <SectionTitle>Historique des échanges <small>{visible.length}</small></SectionTitle>
+          <Group gap="xs"><Text fw={700}>Historique des échanges</Text><Text size="xs" c="dimmed">{visible.length}</Text></Group>
           <div className="row" style={{ gap: 8 }}>
             <div className="chip-row">{filters.map((f) => <button key={f.id} className={`chip ${filter === f.id ? 'active' : ''}`} onClick={() => setFilter(f.id)}>{f.label}</button>)}</div>
-            <Button size="sm" variant="ghost" onClick={() => { if (confirm('Effacer tout l’historique des transferts ?')) clearHistory() }}><Trash2 size={13} /> Effacer</Button>
+            <Button size="xs" variant="subtle" color="gray" onClick={() => { if (confirm('Effacer tout l’historique des transferts ?')) clearHistory() }}><Trash2 size={13} /> Effacer</Button>
           </div>
         </div>
 
         {visible.length === 0 ? (
-          <EmptyState icon={<Clock />} title="Aucun transfert" description="Les fichiers envoyés ou reçus apparaîtront ici avec leur progression." />
+          <Stack align="center" py="xl" gap="xs"><ThemeIcon size={52} radius="xl" variant="light" color="gray"><Clock size={22}/></ThemeIcon><Text fw={700}>Aucun transfert</Text><Text size="sm" c="dimmed" ta="center">Les fichiers envoyés ou reçus apparaîtront ici avec leur progression.</Text></Stack>
         ) : visible.map((t) => <TransferItem key={t.id} transfer={t} fileExists={files.some((f) => f.id === t.fileId)} />)}
       </div>
 
@@ -149,13 +149,13 @@ export default function Transfers() {
       />
 
       {addOpen && (
-        <Modal title="Ajouter des fichiers" onClose={closeAdd}>
+        <Modal opened centered radius="lg" title="Ajouter des fichiers" onClose={closeAdd}>
           <div className={`dropzone ${dragOver ? 'over' : ''}`} onClick={() => inputRef.current?.click()} onDragOver={(e) => { e.preventDefault(); setDragOver(true) }} onDragLeave={() => setDragOver(false)} onDrop={onDrop}>
             <div className="dropzone-icon"><UploadCloud size={25} /></div>
             <div className="strong">{busy ? 'Préparation en cours…' : 'Cliquez ou déposez vos fichiers'}</div>
             <div className="small muted">Plusieurs fichiers acceptés · taille illimitée</div>
           </div>
-          <div className="modal-foot"><Button variant="ghost" onClick={closeAdd}>Fermer</Button></div>
+          <div className="modal-foot"><Button variant="subtle" color="gray" onClick={closeAdd}>Fermer</Button></div>
         </Modal>
       )}
     </div>
@@ -175,11 +175,11 @@ function TransferItem({ transfer, fileExists }: { transfer: Transfer; fileExists
         <div className="row between" style={{ gap: 8 }}>
           <div className="row" style={{ gap: 7, minWidth: 0 }}>
             <span className="small strong truncate">{transfer.fileName}</span>
-            <Badge tone={statusTone[transfer.status]}>{statusLabel[transfer.status]}</Badge>
+            <Badge variant="light" color={statusTone[transfer.status] === "accent" ? "teal" : statusTone[transfer.status] === "blue" ? "blue" : statusTone[transfer.status] === "warn" ? "yellow" : statusTone[transfer.status] === "danger" ? "red" : statusTone[transfer.status] === "violet" ? "grape" : "gray"}>{statusLabel[transfer.status]}</Badge>
           </div>
           <span className="tiny faint" style={{ flex: 'none' }}>{percent}%</span>
         </div>
-        <div style={{ margin: '7px 0 5px' }}><ProgressBar value={percent} thin /></div>
+        <div style={{ margin: '7px 0 5px' }}><Progress radius="xl" color="primary.8" size="sm" value={percent} /></div>
         <div className="row between tiny faint">
           <span>{formatBytes(transfer.offset)} / {formatBytes(transfer.size)} · {transfer.peerName}</span>
           <span className="hidden-mobile">{active ? `${formatSpeed(transfer.speed)} · ${Math.ceil(remaining)} s restantes` : transfer.endedAt ? `Terminé à ${formatTime(transfer.endedAt)}` : relativeTime(transfer.startedAt)}</span>
@@ -187,11 +187,11 @@ function TransferItem({ transfer, fileExists }: { transfer: Transfer; fileExists
         {transfer.error && <div className="tiny" style={{ color: 'var(--danger)' }}>{transfer.error}</div>}
       </div>
       <div className="row" style={{ gap: 4 }}>
-        {transfer.status === 'paused' && <Button size="sm" variant="blue" onClick={() => resumeTransfer(transfer.id)}><Play size={13} /> Reprendre</Button>}
-        {active && <Button size="sm" onClick={() => pauseTransfer(transfer.id)}><Pause size={13} /> Suspendre</Button>}
-        {transfer.status === 'done' && fileExists && <Button size="sm" onClick={() => void downloadFile(file!)}><ArrowDownToLine size={13} /> Télécharger</Button>}
+        {transfer.status === 'paused' && <Button size="xs" variant="light" color="blue" onClick={() => resumeTransfer(transfer.id)}><Play size={13} /> Reprendre</Button>}
+        {active && <Button size="xs" onClick={() => pauseTransfer(transfer.id)}><Pause size={13} /> Suspendre</Button>}
+        {transfer.status === 'done' && fileExists && <Button size="xs" onClick={() => void downloadFile(file!)}><ArrowDownToLine size={13} /> Télécharger</Button>}
         {(active || transfer.status === 'paused' || transfer.status === 'error') && (
-          <button className="icon-btn" style={{ border: 0, background: 'transparent' }} onClick={() => cancelTransfer(transfer.id)} aria-label="Annuler"><X size={15} /></button>
+          <ActionIcon variant="subtle" color="gray" size={36} radius="md" onClick={() => cancelTransfer(transfer.id)} aria-label="Annuler"><X size={15} /></ActionIcon>
         )}
       </div>
     </div>

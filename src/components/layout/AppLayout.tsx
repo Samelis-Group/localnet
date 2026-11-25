@@ -88,20 +88,18 @@ export function AppLayout() {
       navbar={{ width: 260, breakpoint: 'md', collapsed: { mobile: !opened } }}
       padding={0}
       styles={{
-        header: { background: isDark ? 'rgba(6,11,20,0.82)' : 'rgba(255,255,255,0.82)', backdropFilter: 'blur(16px)', borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(19,32,51,0.08)' },
-        navbar: { background: isDark ? 'linear-gradient(180deg, rgba(10,20,34,0.96), rgba(6,11,20,0.98))' : 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(244,247,251,0.98))', borderRight: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(19,32,51,0.08)' },
+        header: { background: isDark ? 'rgba(6,11,20,0.82)' : 'rgba(255,255,255,0.82)', backdropFilter: 'blur(16px)', borderBottom: 0 },
+        navbar: { background: isDark ? 'linear-gradient(180deg, rgba(10,20,34,0.96), rgba(6,11,20,0.98))' : 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(244,247,251,0.98))', borderRight: 0 },
         main: { background: 'transparent' },
       }}
     >
       <AppShell.Header>
-        <Group h="100%" px="lg" gap="md" wrap="nowrap">
+        <Group h="100%" px={{ base: 'sm', sm: 'lg' }} gap="sm" wrap="nowrap">
           <Burger opened={opened} onClick={() => setOpened((v) => !v)} hiddenFrom="md" size="sm" />
-          <Box style={{ minWidth: 0 }}>
-            <Text fw={700} size="sm" lh={1.2}>{title}</Text>
+          <Box style={{ minWidth: 0, flex: 1 }}>
+            <Text fw={700} size="sm" lh={1.2} truncate>{title}</Text>
             <Text size="xs" c="dimmed" visibleFrom="sm">Votre réseau. Vos fichiers. Votre communauté.</Text>
           </Box>
-
-          <Box style={{ marginLeft: 'auto' }} />
           {advanced && (
             <form onSubmit={submitSearch} style={{ width: 'min(330px, 34vw)' }} className="hidden-mobile">
               <TextInput
@@ -111,8 +109,11 @@ export function AppLayout() {
             </form>
           )}
 
-          <Badge color={lan.connected ? 'primary' : lan.status === 'probing' ? 'blue' : 'yellow'} variant="light">
+          <Badge color={lan.connected ? 'primary' : lan.status === 'probing' ? 'blue' : 'yellow'} variant="light" visibleFrom="sm">
             {lan.connected ? 'Connecté' : lan.status === 'probing' ? 'Connexion…' : 'Non connecté'}
+          </Badge>
+          <Badge color={lan.connected ? 'primary' : lan.status === 'probing' ? 'blue' : 'yellow'} variant="light" hiddenFrom="sm">
+            {lan.connected ? 'OK' : lan.status === 'probing' ? '…' : 'Off'}
           </Badge>
           {advanced && <Badge color="gray" variant="light" visibleFrom="sm">{peers.length + 1} appareil(s)</Badge>}
           {!online && <Badge color="red" variant="light" leftSection={<IconWifiOff size={12} />}>Hors ligne</Badge>}
@@ -125,7 +126,7 @@ export function AppLayout() {
 
           {advanced && (
             <Tooltip label="Mode simple">
-              <ActionIcon variant="filled" color="primary" size="lg" radius="md" onClick={() => setSettings({ advancedMode: false })} aria-label="Mode simple">
+              <ActionIcon variant="filled" color="primary" size="lg" radius="md" onClick={() => setSettings({ advancedMode: false })} aria-label="Mode simple" visibleFrom="sm">
                 <IconAdjustments size={17} />
               </ActionIcon>
             </Tooltip>
@@ -134,6 +135,9 @@ export function AppLayout() {
           <Button variant="gradient" gradient={{ from: '#2ed3a0', to: '#01a275', deg: 100 }} leftSection={<IconUpload size={15} />} onClick={() => navigate('/bibliotheque?add=1')} visibleFrom="sm">
             Ajouter
           </Button>
+          <ActionIcon variant="gradient" gradient={{ from: '#2ed3a0', to: '#01a275', deg: 100 }} size="lg" radius="md" onClick={() => navigate('/bibliotheque?add=1')} hiddenFrom="sm" aria-label="Ajouter">
+            <IconUpload size={17} />
+          </ActionIcon>
         </Group>
       </AppShell.Header>
 
@@ -186,7 +190,7 @@ export function AppLayout() {
           )}
 
           <UnstyledButton component={NavLink} to="/parametres" onClick={() => setOpened(false)}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 8px 2px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px 8px 2px', borderTop: 0 }}>
             <div className="avatar" style={{ background: me?.color ?? '#01a275' }}>{(settings.displayName || me?.name || 'U').split(/\s+/).slice(0,2).map(p=>p[0]).join('').toUpperCase()}</div>
             <Box style={{ flex: 1, minWidth: 0 }}>
               <Text size="sm" fw={700} truncate>{settings.displayName || me?.name}</Text>

@@ -1,23 +1,24 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { ArrowDownToLine, ArrowLeft, FileQuestion, Lock, ShieldCheck } from 'lucide-react'
+import { Badge, Button, Stack, Text, ThemeIcon } from '@mantine/core'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ArrowDownToLine, ArrowLeft, FileDown, Lock, ShieldCheck } from 'lucide-react'
 import { useAppStore } from '../../lib/store'
 import { downloadFile, previewUrl } from '../../lib/transfer'
 import { fetchRemoteFile, serverOriginForShare } from '../../lib/lan'
 import { categoryColor, formatBytes, formatDate } from '../../lib/format'
-import { Badge, Button, EmptyState } from '../../components/ui'
 import { QRCode } from '../../components/ui/QRCode'
-import { toast } from '../../components/ui/toast'
+import { toast } from '../../lib/toast'
 import type { LibraryFile } from '../../lib/types'
 
 export default function SharePage() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const files = useAppStore((s) => s.files)
   const remoteFiles = useAppStore((s) => s.remoteFiles)
   const users = useAppStore((s) => s.users)
   const local = files.find((f) => f.id === id) || remoteFiles.find((f) => f.id === id)
   const [remote, setRemote] = useState<LibraryFile | undefined>()
-  const [loading, setLoading] = useState(!local)
+  const [, setLoading] = useState(!local)
   useEffect(() => {
     if (local || !id) return
     let alive = true
@@ -32,7 +33,7 @@ export default function SharePage() {
     return (
       <div className="login-wrap">
         <div className="card login-card">
-          <EmptyState icon={<FileQuestion />} title={loading ? 'Chargement…' : 'Ressource introuvable'} description={loading ? 'Recherche du fichier sur le réseau local.' : 'Ce lien ne correspond pas à un fichier partagé accessible.'} action={<Link to="/bibliotheque" className="btn primary">Retour aux fichiers</Link>} />
+          <Stack align="center" py="xl" gap="xs"><ThemeIcon size={52} radius="xl" variant="light" color="gray"><FileDown size={22} /></ThemeIcon><Text fw={700}>{"Fichier inaccessible"}</Text><Text size="sm" c="dimmed" ta="center">Le fichier a peut-être été retiré, ou le lien est incorrect.</Text><Button onClick={() => navigate("/bibliotheque")}>Retour</Button></Stack>
         </div>
       </div>
     )
@@ -74,7 +75,7 @@ export default function SharePage() {
         </div>
 
         {file.canDownload ? (
-          <Button variant="primary" className="block" onClick={async () => {
+          <Button color="primary.8" className="block" onClick={async () => {
             const ok = await downloadFile(file)
             toast[ok ? 'success' : 'error'](ok ? 'Téléchargement lancé' : 'Fichier indisponible')
             if (!ok) {

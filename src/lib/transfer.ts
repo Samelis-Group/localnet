@@ -2,7 +2,7 @@ import { getFileBlob, useAppStore } from './store'
 import { downloadUrl, uid } from './format'
 import { deleteRemoteFile, remoteBlobUrl, serverConfigured, uploadFileToServer } from './lan'
 import { isConnected } from './transport'
-import { toast } from '../components/ui/toast'
+import { toast } from '../lib/toast'
 import type { FileVisibility, LibraryFile, Transfer } from './types'
 
 const previewCache = new Map<string, string>()

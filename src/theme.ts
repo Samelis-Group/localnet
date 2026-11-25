@@ -37,14 +37,16 @@ export const theme = createTheme({
     fontWeight: '400',
   },
   components: {
-    Button: { defaultProps: { radius: 'xl' } },
-    Card: { defaultProps: { radius: 'lg' } },
-    Paper: { defaultProps: { radius: 'lg' } },
+    Button: { defaultProps: { radius: 'xl', variant: 'subtle' } },
+    Card: { defaultProps: { radius: 'lg', withBorder: false } },
+    Paper: { defaultProps: { radius: 'lg', withBorder: false } },
     TextInput: { defaultProps: { radius: 'md' } },
     Select: { defaultProps: { radius: 'md' } },
     Textarea: { defaultProps: { radius: 'md' } },
-    Badge: { defaultProps: { radius: 'xl' } },
-    ActionIcon: { defaultProps: { radius: 'md' } },
+    Badge: { defaultProps: { radius: 'xl', variant: 'light' } },
+    ActionIcon: { defaultProps: { radius: 'md', variant: 'subtle' } },
+    AppShell: { styles: { header: { borderBottom: 0 }, navbar: { borderRight: 0 } } },
+    Menu: { defaultProps: { radius: 'md', shadow: 'md' } },
   },
 })
 

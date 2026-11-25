@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Center, Loader, Stack, Text } from '@mantine/core'
 import { AppLayout } from '../components/layout/AppLayout'
-import { Toaster } from '../components/ui'
+import { Toaster } from '../components/Toaster'
 import { ErrorBoundary } from './ErrorBoundary'
 
 const Dashboard = lazy(() => import('../features/dashboard/Dashboard'))

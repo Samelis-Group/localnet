@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
+import { Badge, Button, Switch, Text } from '@mantine/core'
 import { Moon, ShieldCheck, Sun } from 'lucide-react'
 import { useAppStore } from '../../lib/store'
 import { usePeerStore } from '../../lib/presence'
 import { probeServer, setServerUrl, subscribeStatus, normalizeServerUrl, autoDetectServer } from '../../lib/transport'
 import { syncRemoteLibrary } from '../../lib/lan'
-import { Badge, Button, SectionTitle, Toggle } from '../../components/ui'
-import { toast } from '../../components/ui/toast'
+import { toast } from '../../lib/toast'
 
 function Row({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
-    <div className="row between" style={{ gap: 16, padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
+    <div className="row between" style={{ gap: 16, padding: '12px 0' }}>
       <div><div className="small strong">{title}</div><div className="tiny faint">{description}</div></div>
       <div style={{ flex: 'none' }}>{children}</div>
     </div>
@@ -62,18 +62,18 @@ export default function SettingsPage() {
           <p className="page-sub">Garde ça simple: connecte-toi au partage local et choisis ton nom.</p>
         </div>
         <div className="row" style={{ gap: 8 }}>
-          <Badge tone={status.connected ? 'accent' : 'warn'}>{status.connected ? 'Partage actif' : 'Partage non connecté'}</Badge>
-          <Button size="sm" variant={settings.advancedMode ? 'blue' : 'ghost'} onClick={() => setSettings({ advancedMode: !settings.advancedMode })}>{settings.advancedMode ? 'Masquer avancé' : 'Mode avancé'}</Button>
+          <Badge variant="light" color={status.connected ? "teal" : "yellow"}>{status.connected ? "Partage actif" : "Partage non connecté"}</Badge>
+          <Button size="xs" variant={settings.advancedMode ? 'blue' : 'ghost'} onClick={() => setSettings({ advancedMode: !settings.advancedMode })}>{settings.advancedMode ? 'Masquer avancé' : 'Mode avancé'}</Button>
         </div>
       </div>
 
       <div className="card">
-        <SectionTitle>Connexion simple</SectionTitle>
+        <Text fw={700} mb="sm">Connexion simple</Text>
         <div className="small muted" style={{ marginBottom: 12 }}>Ouvre le même lien LocalNet sur tous les PC du même Wi-Fi. Si tu es sur le PC hôte, la détection est automatique.</div>
         <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
           <input className="input" value={serverUrlInput} onChange={(e) => setServerUrlInput(e.target.value)} placeholder="http://192.168.1.10:4173" style={{ flex: 1, minWidth: 240 }} />
-          <Button variant="blue" onClick={() => void auto()} disabled={checking}>Détecter</Button>
-          <Button variant="primary" onClick={() => void applyServer()} disabled={checking}>{checking ? 'Connexion…' : 'Connecter'}</Button>
+          <Button variant="light" color="blue" onClick={() => void auto()} disabled={checking}>Détecter</Button>
+          <Button color="primary.8" onClick={() => void applyServer()} disabled={checking}>{checking ? 'Connexion…' : 'Connecter'}</Button>
         </div>
         <div className="row" style={{ gap: 8, marginTop: 10 }}>
           <span className={`dot ${status.connected ? '' : 'warn'}`} />
@@ -83,14 +83,14 @@ export default function SettingsPage() {
 
       <div className="grid two">
         <div className="card">
-          <SectionTitle>Mon profil</SectionTitle>
+          <Text fw={700} mb="sm">Mon profil</Text>
           <div className="field"><label>Ton nom visible</label><input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: PC Salon, Nadia..." /></div>
-          <Button variant="primary" onClick={() => { setSettings({ displayName: name.trim() }); updateProfile({ name: name.trim() || me?.name || 'Utilisateur' }); toast.success('Nom enregistré') }}>Enregistrer</Button>
+          <Button color="primary.8" onClick={() => { setSettings({ displayName: name.trim() }); updateProfile({ name: name.trim() || me?.name || 'Utilisateur' }); toast.success('Nom enregistré') }}>Enregistrer</Button>
           <div className="tiny muted" style={{ marginTop: 10 }}>Ce nom est affiché aux autres appareils connectés.</div>
         </div>
 
         <div className="card">
-          <SectionTitle>Apparence</SectionTitle>
+          <Text fw={700} mb="sm">Apparence</Text>
           <Row title="Thème" description="Clair ou sombre">
             <div className="segmented">
               <button className={settings.theme === 'dark' ? 'active' : ''} onClick={() => { setSettings({ theme: 'dark' }); document.documentElement.dataset.theme = 'dark' }}><Moon size={14} /></button>
@@ -106,23 +106,23 @@ export default function SettingsPage() {
       {settings.advancedMode && (
         <div className="grid two">
           <div className="card">
-            <SectionTitle>Avancé réseau</SectionTitle>
+            <Text fw={700} mb="sm">Avancé réseau</Text>
             <div className="field"><label>Nom du réseau</label><input className="input" value={settings.networkName} onChange={(e) => setSettings({ networkName: e.target.value })} /></div>
-            <Row title="Découverte automatique" description="Garder la présence active"><Toggle checked={settings.autoDiscover} onChange={(v) => setSettings({ autoDiscover: v })} /></Row>
-            <Row title="Notifications" description="Signaler les événements"><Toggle checked={settings.notifications} onChange={(v) => setSettings({ notifications: v })} /></Row>
+            <Row title="Découverte automatique" description="Garder la présence active"><Switch checked={settings.autoDiscover} onChange={(e) => setSettings({ autoDiscover: e.currentTarget.checked })} /></Row>
+            <Row title="Notifications" description="Signaler les événements"><Switch checked={settings.notifications} onChange={(e) => setSettings({ notifications: e.currentTarget.checked })} /></Row>
           </div>
           <div className="card">
-            <SectionTitle>Avancé transferts</SectionTitle>
+            <Text fw={700} mb="sm">Avancé transferts</Text>
             <div className="field"><label>Taille des blocs : {settings.chunkSize} Mo</label><input type="range" min="0.5" max="8" step="0.5" value={settings.chunkSize} onChange={(e) => setSettings({ chunkSize: Number(e.target.value) })} style={{ width: '100%' }} /></div>
             <div className="field"><label>Transferts simultanés : {settings.concurrency}</label><input type="range" min="1" max="6" step="1" value={settings.concurrency} onChange={(e) => setSettings({ concurrency: Number(e.target.value) })} style={{ width: '100%' }} /></div>
-            <Row title="Mode compact" description="Réduire les espacements"><Toggle checked={settings.compactMode} onChange={(v) => setSettings({ compactMode: v })} /></Row>
-            <Row title="Acceptation auto" description="Traiter sans confirmation"><Toggle checked={settings.autoAccept} onChange={(v) => setSettings({ autoAccept: v })} /></Row>
+            <Row title="Mode compact" description="Réduire les espacements"><Switch checked={settings.compactMode} onChange={(e) => setSettings({ compactMode: e.currentTarget.checked })} /></Row>
+            <Row title="Acceptation auto" description="Traiter sans confirmation"><Switch checked={settings.autoAccept} onChange={(e) => setSettings({ autoAccept: e.currentTarget.checked })} /></Row>
           </div>
         </div>
       )}
 
       <div className="card">
-        <SectionTitle>Infos</SectionTitle>
+        <Text fw={700} mb="sm">Infos</Text>
         <div className="row" style={{ gap: 8 }}><ShieldCheck size={15} style={{ color: 'var(--accent)' }} /><span className="small">Partage local sur réseau de confiance. Les réglages avancés restent disponibles via le bouton Mode avancé.</span></div>
       </div>
     </div>

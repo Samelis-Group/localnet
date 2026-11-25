@@ -38,10 +38,10 @@ export const FileRow = memo(function FileRow({ file, ownerName, onPreview, onDow
       <div className="tiny faint">{file.downloads} téléch.</div>
       <div className="tiny faint hidden-mobile">{fileExtension(file.name)}</div>
       <div className="row" style={{ gap: 2 }}>
-        <IconButton label="Aperçu" onClick={() => onPreview(file)}><FileText size={14} /></IconButton>
-        <IconButton label="Télécharger" onClick={() => onDownload(file)}><Download size={14} /></IconButton>
-        <IconButton label="Partager" onClick={() => onShare(file)}><Share2 size={14} /></IconButton>
-        <IconButton label="Plus" onClick={() => (onMenu ? onMenu(file) : onStar(file))}><MoreHorizontal size={14} /></IconButton>
+        <IconButton label="Aperçu" onClick={() => onPreview(file)}><FileText size={16} /></IconButton>
+        <IconButton label="Télécharger" onClick={() => onDownload(file)}><Download size={16} /></IconButton>
+        <IconButton label="Partager" onClick={() => onShare(file)}><Share2 size={16} /></IconButton>
+        <IconButton label="Plus" onClick={() => (onMenu ? onMenu(file) : onStar(file))}><MoreHorizontal size={16} /></IconButton>
       </div>
     </div>
   )

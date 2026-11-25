@@ -1,12 +1,12 @@
 import { useState } from 'react'
+import { Avatar, Badge, Button, Modal, Text } from '@mantine/core'
 import { Copy, Laptop, QrCode, RefreshCw, Wifi } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../../lib/store'
 import { usePeerStore } from '../../lib/presence'
 import { relativeTime } from '../../lib/format'
-import { Avatar, Badge, Button, Modal, SectionTitle } from '../../components/ui'
 import { QRCode as QR } from '../../components/ui/QRCode'
-import { toast } from '../../components/ui/toast'
+import { toast } from '../../lib/toast'
 import { getServerUrl, isConnected, probeServer, setServerUrl } from '../../lib/transport'
 import { syncRemoteLibrary } from '../../lib/lan'
 
@@ -48,26 +48,26 @@ export default function Networks() {
           <p className="page-sub">Les appareils connectés au même LocalNet se voient automatiquement.</p>
         </div>
         <div className="page-actions">
-          <Button variant="ghost" onClick={() => setJoinOpen(true)}><QrCode size={15} /> Rejoindre / connecter</Button>
-          <Button variant="primary" onClick={() => navigate('/parametres')}><Wifi size={15} /> Paramètres</Button>
+          <Button variant="subtle" color="gray" onClick={() => setJoinOpen(true)}><QrCode size={15} /> Rejoindre / connecter</Button>
+          <Button color="primary.8" onClick={() => navigate('/parametres')}><Wifi size={15} /> Paramètres</Button>
         </div>
       </div>
 
       <div className="grid two">
         <div className="card">
-          <SectionTitle>Ce partage</SectionTitle>
+          <Text fw={700} mb="sm">Ce partage</Text>
           <div className="row" style={{ gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
             <QR value={shareUrl || 'http://localhost:4173'} size={132} />
             <div className="grow">
               <div className="row" style={{ gap: 8, marginBottom: 8 }}>
-                <Badge tone={connected ? 'accent' : 'warn'}>{connected ? 'Actif' : 'Non connecté'}</Badge>
-                <Badge tone="blue">{peers.length + 1} appareil(s)</Badge>
+                <Badge variant="light" color={connected ? "teal" : "yellow"}>{connected ? "Actif" : "Non connecté"}</Badge>
+                <Badge variant="light" color="blue">{peers.length + 1} appareil(s)</Badge>
               </div>
               <div className="small strong">Lien à ouvrir sur les autres PC</div>
               <div className="input mono tiny" style={{ margin: '8px 0', wordBreak: 'break-all' }}>{shareUrl || 'Lance le serveur LocalNet pour obtenir un lien'}</div>
               <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-                <Button size="sm" variant="blue" onClick={() => void copy(shareUrl)} disabled={!shareUrl}><Copy size={13} /> Copier le lien</Button>
-                <Button size="sm" variant="ghost" onClick={() => { setUrl(shareUrl); setJoinOpen(true) }}><RefreshCw size={13} /> Reconnecter</Button>
+                <Button size="xs" variant="light" color="blue" onClick={() => void copy(shareUrl)} disabled={!shareUrl}><Copy size={13} /> Copier le lien</Button>
+                <Button size="xs" variant="subtle" color="gray" onClick={() => { setUrl(shareUrl); setJoinOpen(true) }}><RefreshCw size={13} /> Reconnecter</Button>
               </div>
               <div className="tiny muted" style={{ marginTop: 10 }}>Simple: tout le monde sur le même Wi-Fi ouvre ce lien, puis ajoute ses fichiers.</div>
             </div>
@@ -75,7 +75,7 @@ export default function Networks() {
         </div>
 
         <div className="card">
-          <SectionTitle>Mon appareil</SectionTitle>
+          <Text fw={700} mb="sm">Mon appareil</Text>
           <div className="row" style={{ gap: 12 }}>
             <Avatar name={settings.displayName || me?.name || 'Moi'} color={me?.color || '#01a275'} />
             <div>
@@ -91,7 +91,7 @@ export default function Networks() {
       </div>
 
       <div className="card">
-        <SectionTitle>Appareils connectés <small>{peers.length + 1}</small></SectionTitle>
+        <Text fw={700} mb="sm">Appareils connectés <small>{peers.length + 1}</small></Text>
         <div className="device-grid" style={{ marginTop: 10 }}>
           <div className="device-card">
             <div className="device-icon" style={{ color: 'var(--accent)' }}><Laptop size={18} /></div>
@@ -110,12 +110,12 @@ export default function Networks() {
       </div>
 
       {joinOpen && (
-        <Modal title="Rejoindre un partage" onClose={() => setJoinOpen(false)}>
+        <Modal opened centered radius="lg" title="Rejoindre un partage" onClose={() => setJoinOpen(false)}>
           <div className="field"><label>Lien du LocalNet</label><input className="input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="http://192.168.1.10:4173" /></div>
           <div className="tiny muted">Ouvre le même lien que le PC hôte. La connexion se fait automatiquement.</div>
           <div className="modal-foot">
-            <Button variant="ghost" onClick={() => setJoinOpen(false)}>Annuler</Button>
-            <Button variant="primary" onClick={() => void connect()} disabled={busy}>{busy ? 'Connexion…' : 'Se connecter'}</Button>
+            <Button variant="subtle" color="gray" onClick={() => setJoinOpen(false)}>Annuler</Button>
+            <Button color="primary.8" onClick={() => void connect()} disabled={busy}>{busy ? 'Connexion…' : 'Se connecter'}</Button>
           </div>
         </Modal>
       )}

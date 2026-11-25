@@ -1,11 +1,12 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { ActionIcon } from '@mantine/core'
+import type { MouseEventHandler, ReactNode } from 'react'
 
-type Props = ButtonHTMLAttributes<HTMLButtonElement> & { label: string; children: ReactNode }
+type Props = { label: string; children: ReactNode; className?: string; onClick?: MouseEventHandler<HTMLButtonElement>; disabled?: boolean; color?: string; size?: number | 'sm' | 'md' | 'lg' }
 
-export function IconButton({ label, children, className = '', ...props }: Props) {
+export function IconButton({ label, children, className = '', onClick, disabled, color = 'gray', size = 'lg' }: Props) {
   return (
-    <button className={`icon-btn ${className}`} style={{ width: 28, height: 28, border: 0, background: 'transparent' }} aria-label={label} title={label} {...props}>
+    <ActionIcon variant="subtle" color={color} size={size} radius="md" className={className} aria-label={label} title={label} onClick={onClick} disabled={disabled}>
       {children}
-    </button>
+    </ActionIcon>
   )
 }
