@@ -111,6 +111,10 @@ export function startTransport(config: { serverUrl?: string; identity: Pick<Peer
   publish({ type: 'presence', peer: selfPeer() })
   clearInterval(heartbeatTimer)
   heartbeatTimer = setInterval(() => publish({ type: 'presence', peer: selfPeer() }), 4000)
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) publish({ type: 'presence', peer: selfPeer() }) })
+    window.addEventListener('focus', () => publish({ type: 'presence', peer: selfPeer() }))
+  }
   if (serverUrl) connectWebSocket()
   emitStatus()
 }

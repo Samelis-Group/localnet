@@ -263,6 +263,7 @@ const server = createServer(async (req, res) => {
 
 const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 256 * 1024 })
 const buckets = new WeakMap()
+const lastPresence = new Map() // peerId -> presence message
 
 wss.on('connection', (socket, request) => {
   const url = new URL(request.url ?? '/', 'http://localhost')
@@ -270,8 +271,12 @@ wss.on('connection', (socket, request) => {
   wsPeerIds.set(socket, peerId)
   buckets.set(socket, { count: 0, at: Date.now() })
 
-  // send current library snapshot to new peer
   try { socket.send(JSON.stringify({ type: 'library:snapshot', files: db.files.filter((f) => canAccessFile(f, peerId)).map(fileMeta) })) } catch {}
+  // send known peers to newcomer and newcomer to others happens via presence messages
+  for (const [id, msg] of lastPresence) {
+    if (id === peerId) continue
+    try { socket.send(JSON.stringify(msg)) } catch {}
+  }
 
   socket.on('message', (raw) => {
     const bucket = buckets.get(socket)
@@ -284,7 +289,10 @@ wss.on('connection', (socket, request) => {
     let message
     try { message = JSON.parse(raw.toString()) } catch { return }
     if (!message || typeof message.type !== 'string') return
-    if (message.type === 'presence' && message.peer) message.peer.id = peerId
+    if (message.type === 'presence' && message.peer) {
+      message.peer.id = peerId
+      lastPresence.set(peerId, { ...message, from: peerId })
+    }
 
     if (message.type === 'library:add' || message.type === 'library:update' || message.type === 'library:remove' || message.type === 'library:snapshot') return
 
@@ -295,12 +303,20 @@ wss.on('connection', (socket, request) => {
   })
 
   socket.on('close', () => {
+    lastPresence.delete(peerId)
     const payload = JSON.stringify({ type: 'bye', peerId, from: peerId })
     for (const client of wss.clients) {
       if (client !== socket && client.readyState === WebSocket.OPEN) client.send(payload)
     }
   })
 })
+
+setInterval(() => {
+  for (const msg of lastPresence.values()) {
+    const payload = JSON.stringify(msg)
+    for (const client of wss.clients) if (client.readyState === WebSocket.OPEN) try { client.send(payload) } catch {}
+  }
+}, 10000)
 
 const addresses = Object.values(networkInterfaces())
   .flat()
